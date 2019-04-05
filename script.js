@@ -5,10 +5,58 @@ var keys = [];
 
 var shape = undefined;
 var grid = new Grid();
-var blockSize = 20;
+var autoGoDownTimer = new Timer(1000);
+var blockSize = 24;
 
 function update() {
-    autoGoDown();
+    var blocks;
+    
+    if (keys.indexOf('ArrowUp') >= 0) {
+        blocks = shape.getRotatedBlocks(1);
+        console.log(blocks)
+        if (isLocationValid(blocks)) {
+            shape.rotateBlocks(1);
+        }
+    }
+    
+    if (keys.indexOf('z') >= 0 || keys.indexOf('Z') >= 0) {
+        blocks = shape.getRotatedBlocks(-1);
+        if (isLocationValid(blocks)) {
+            shape.rotateBlocks(-1);
+        }
+    }
+    
+    if (keys.indexOf('ArrowLeft') >= 0) {
+        blocks = shape.getTranslatedBlocks(-1, 0);
+        if (isLocationValid(blocks)) {
+            shape.translateBlocks(-1, 0);
+        }
+    }
+    
+    if (keys.indexOf('ArrowRight') >= 0) {
+        blocks = shape.getTranslatedBlocks(1, 0);
+        if (isLocationValid(blocks)) {
+            shape.translateBlocks(1, 0);
+        }
+    }
+    
+    if (keys.indexOf('ArrowDown') >= 0) {
+        blocks = shape.getTranslatedBlocks(0, 1);
+        if (isLocationValid(blocks)) {
+            shape.translateBlocks(0, 1);
+        }
+    }
+    
+    
+    blocks = shape.getBlocks();
+    if (!isLocationValid(blocks))
+        console.log("strange");
+    
+    
+    if (autoGoDownTimer.isDone()) {
+        autoGoDown();
+        autoGoDownTimer.reset();
+    }
 }
 
 function autoGoDown() {
@@ -117,7 +165,7 @@ function start() {
     setInterval(function () {
         update();
         draw();
-    }, 200);
+    }, 100);
 }
 
 addEventListener('keydown', function (e) {
@@ -125,7 +173,7 @@ addEventListener('keydown', function (e) {
         keys.push(e.key);
 });
 addEventListener('keyup', function (e) {
-    var index = keys.indexOf(e.keyCode);
+    var index = keys.indexOf(e.key);
     if (index >= 0)
         keys.splice(index, 1);
 });
