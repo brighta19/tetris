@@ -1,25 +1,26 @@
 //http://cslibrary.stanford.edu/112/TetrisAssignment.pdf
 var canvas = document.getElementById("cvs");
 var ctx = canvas.getContext('2d');
+var prevKeys = [];
 var keys = [];
 
 var shape = undefined;
 var grid = new Grid();
 var autoGoDownTimer = new Timer(1000);
-var blockSize = 24;
+var BLOCK_SIZE = 24;
 
 function update() {
     var blocks;
     
-    if (keys.indexOf('ArrowUp') >= 0) {
+    if (keys.indexOf('ArrowUp') >= 0 && prevKeys.indexOf('ArrowUp') < 0) {
         blocks = shape.getRotatedBlocks(1);
-        console.log(blocks)
         if (isLocationValid(blocks)) {
             shape.rotateBlocks(1);
         }
     }
     
-    if (keys.indexOf('z') >= 0 || keys.indexOf('Z') >= 0) {
+    if ((keys.indexOf('z') >= 0 || keys.indexOf('Z') >= 0) &&
+    (prevKeys.indexOf('z') < 0 || prevKeys.indexOf('Z') < 0)) {
         blocks = shape.getRotatedBlocks(-1);
         if (isLocationValid(blocks)) {
             shape.rotateBlocks(-1);
@@ -57,6 +58,12 @@ function update() {
         autoGoDown();
         autoGoDownTimer.reset();
     }
+    
+    
+    // Update previous Keys
+    prevKeys = [];
+    for (var i = 0; i < keys.length; i++)
+        prevKeys[i] = keys[i];
 }
 
 function autoGoDown() {
@@ -75,7 +82,7 @@ function tryMovingShape(x, y) {
             block = blocks[i];
             grid.setBlock(block.x - x , block.y - y, shape.color);
         }
-        
+        grid.tryClearingLines();
         setRandomShape();
     }
 }
@@ -115,11 +122,14 @@ function setRandomShape() {
 function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height); // Clears the screen
     
-    drawGrid();
-    drawShape();
+    var offsetX = (canvas.width / 2) - (grid.width / 2);
+    var offsetY = (canvas.height / 2) - (grid.height / 2);
+    
+    drawGrid(offsetX, offsetY);
+    drawShape(offsetX, offsetY);
 }
 
-function drawGrid() {
+function drawGrid(offsetX, offsetY) {
     ctx.save();
     ctx.strokeStyle = "gray";
     for (var y = 0; y < grid.rows; y++) {
@@ -127,7 +137,9 @@ function drawGrid() {
             var block = grid.getBlock(x, y);
             
             ctx.beginPath();
-            ctx.rect(x * blockSize, y * blockSize, blockSize, blockSize);
+            ctx.rect(offsetX + x * grid.blockSize,
+                offsetY + y * grid.blockSize,
+                grid.blockSize, grid.blockSize);
             ctx.closePath();
             ctx.stroke();
             
@@ -140,7 +152,7 @@ function drawGrid() {
     ctx.restore();
 }
 
-function drawShape() {
+function drawShape(offsetX, offsetY) {
     var blocks = shape.getBlocks();
     
     ctx.save();
@@ -150,7 +162,9 @@ function drawShape() {
         var block = blocks[i];
         
         ctx.beginPath();
-        ctx.rect(block.x * blockSize, block.y * blockSize, blockSize, blockSize);
+        ctx.rect(offsetX + block.x * grid.blockSize,
+            offsetY + block.y * grid.blockSize,
+            grid.blockSize, grid.blockSize);
         ctx.closePath();
         ctx.fill();
         ctx.stroke();
@@ -158,8 +172,26 @@ function drawShape() {
     ctx.restore();
 }
 
+function onKeyPress() {
+    var blocks;
+    
+    if (keys.indexOf('ArrowLeft') >= 0) {
+        blocks = shape.getTranslatedBlocks(-1, 0);
+        if (isLocationValid(blocks)) {
+            shape.translateBlocks(-1, 0);
+        }
+    }
+    
+    if (keys.indexOf('ArrowRight') >= 0) {
+        blocks = shape.getTranslatedBlocks(1, 0);
+        if (isLocationValid(blocks)) {
+            shape.translateBlocks(1, 0);
+        }
+    }
+}
+
 function start() {
-    grid.init();
+    grid.init(BLOCK_SIZE);
     setRandomShape();
     
     setInterval(function () {
@@ -171,7 +203,9 @@ function start() {
 addEventListener('keydown', function (e) {
     if (keys.indexOf(e.key) < 0)
         keys.push(e.key);
+    onKeyPress();
 });
+
 addEventListener('keyup', function (e) {
     var index = keys.indexOf(e.key);
     if (index >= 0)

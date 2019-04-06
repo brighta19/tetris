@@ -11,16 +11,18 @@ function Tetromino(tetrimino) {
     };
     
     this.rotateBlocks = function (x) {
-        this.rotation += x;
+        var rotation = this.rotation + x;
         
-        if (this.rotation > this.blocks.length - 1)
-            this.rotation = 0;
-        if (this.rotation < 0)
-            this.rotation = this.blocks.length - 1;
+        if (rotation > this.blocks.length - 1)
+            rotation = 0;
+        if (rotation < 0)
+            rotation = this.blocks.length - 1;
+            
+        this.rotation = rotation;
     };
     
     this.getTranslatedBlocks = function (x, y, rot) {
-        var rotation = rot || this.rotation,
+        var rotation = (rot != undefined) ? rot : this.rotation,
             blocks = [];
         
         for (var i = 0; i < this.blocks[rotation].length; i++) {
