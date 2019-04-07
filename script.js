@@ -4,47 +4,57 @@ var ctx = canvas.getContext('2d');
 var prevKeys = [];
 var keys = [];
 
+var BLOCK_SIZE = 24;
 var shape = undefined;
 var grid = new Grid();
-var autoGoDownTimer = new Timer(1000);
-var BLOCK_SIZE = 24;
+var queue = new Queue();
+var timers = {
+    initialMove: new Timer(200),
+    move: new Timer(40),
+    autoGoDown: new Timer(1000),
+};
 
 function update() {
-    var blocks;
+    var initMoveTimerDone = timers.initialMove.isDone(),
+        moveTimerDone = timers.move.isDone(),
+        blocks;
     
-    if (keys.indexOf('ArrowUp') >= 0 && prevKeys.indexOf('ArrowUp') < 0) {
+    if (isKeyPressed("ArrowUp") && !wasKeyPressed("ArrowUp")) {
         blocks = shape.getRotatedBlocks(1);
         if (isLocationValid(blocks)) {
             shape.rotateBlocks(1);
         }
     }
     
-    if ((keys.indexOf('z') >= 0 || keys.indexOf('Z') >= 0) &&
-    (prevKeys.indexOf('z') < 0 || prevKeys.indexOf('Z') < 0)) {
+    if ((isKeyPressed("z") && !wasKeyPressed("z")) ||
+    isKeyPressed("Z") &&  !wasKeyPressed("Z")) {
         blocks = shape.getRotatedBlocks(-1);
         if (isLocationValid(blocks)) {
             shape.rotateBlocks(-1);
         }
     }
     
-    if (keys.indexOf('ArrowLeft') >= 0) {
+    if (isKeyPressed("ArrowLeft") && initMoveTimerDone && moveTimerDone) {
         blocks = shape.getTranslatedBlocks(-1, 0);
         if (isLocationValid(blocks)) {
             shape.translateBlocks(-1, 0);
+            timers.move.reset();
         }
     }
     
-    if (keys.indexOf('ArrowRight') >= 0) {
+    if (isKeyPressed("ArrowRight") && initMoveTimerDone && moveTimerDone) {
         blocks = shape.getTranslatedBlocks(1, 0);
         if (isLocationValid(blocks)) {
             shape.translateBlocks(1, 0);
+            timers.move.reset();
         }
     }
     
-    if (keys.indexOf('ArrowDown') >= 0) {
+    if (isKeyPressed("ArrowDown")) {
         blocks = shape.getTranslatedBlocks(0, 1);
         if (isLocationValid(blocks)) {
             shape.translateBlocks(0, 1);
+            timers.autoGoDown.reset();
         }
     }
     
@@ -54,9 +64,9 @@ function update() {
         console.log("strange");
     
     
-    if (autoGoDownTimer.isDone()) {
-        autoGoDown();
-        autoGoDownTimer.reset();
+    if (timers.autoGoDown.isDone()) {
+        tryMovingShape(0, 1);
+        timers.autoGoDown.reset();
     }
     
     
@@ -64,10 +74,6 @@ function update() {
     prevKeys = [];
     for (var i = 0; i < keys.length; i++)
         prevKeys[i] = keys[i];
-}
-
-function autoGoDown() {
-    tryMovingShape(0, 1);
 }
 
 function tryMovingShape(x, y) {
@@ -83,7 +89,7 @@ function tryMovingShape(x, y) {
             grid.setBlock(block.x - x , block.y - y, shape.color);
         }
         grid.tryClearingLines();
-        setRandomShape();
+        setShape();
     }
 }
 
@@ -104,23 +110,13 @@ function isLocationValid(blocks) {
     return true;
 }
 
-function setRandomShape() {
-    var shapes = [
-            Tetromino.S,
-            Tetromino.Z,
-            Tetromino.T,
-            Tetromino.L,
-            Tetromino.J,
-            Tetromino.O,
-            Tetromino.I,
-        ],
-        index = Math.floor(Math.random() * shapes.length);
-    
-    shape = new Tetromino(shapes[index]);
+function setShape() {
+    var block = queue.getNextBlock();
+    shape = new Tetromino(block);
 }
 
 function draw() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height); // Clears the screen
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
     
     var offsetX = (canvas.width / 2) - (grid.width / 2);
     var offsetY = (canvas.height / 2) - (grid.height / 2);
@@ -132,6 +128,7 @@ function draw() {
 function drawGrid(offsetX, offsetY) {
     ctx.save();
     ctx.strokeStyle = "gray";
+
     for (var y = 0; y < grid.rows; y++) {
         for (var x = 0; x < grid.cols; x++) {
             var block = grid.getBlock(x, y);
@@ -149,6 +146,7 @@ function drawGrid(offsetX, offsetY) {
             }
         }
     }
+
     ctx.restore();
 }
 
@@ -175,35 +173,46 @@ function drawShape(offsetX, offsetY) {
 function onKeyPress() {
     var blocks;
     
-    if (keys.indexOf('ArrowLeft') >= 0) {
+    if (isKeyPressed("ArrowLeft")) {
         blocks = shape.getTranslatedBlocks(-1, 0);
         if (isLocationValid(blocks)) {
             shape.translateBlocks(-1, 0);
+            timers.initialMove.reset();
         }
     }
     
-    if (keys.indexOf('ArrowRight') >= 0) {
+    if (isKeyPressed("ArrowRight")) {
         blocks = shape.getTranslatedBlocks(1, 0);
         if (isLocationValid(blocks)) {
             shape.translateBlocks(1, 0);
+            timers.initialMove.reset();
         }
     }
+}
+
+function isKeyPressed(key) {
+    return keys.indexOf(key) >= 0;
+}
+
+function wasKeyPressed(key) {
+    return prevKeys.indexOf(key) >= 0;
 }
 
 function start() {
     grid.init(BLOCK_SIZE);
-    setRandomShape();
+    setShape();
     
     setInterval(function () {
         update();
         draw();
-    }, 100);
+    }, 50);
 }
 
 addEventListener('keydown', function (e) {
-    if (keys.indexOf(e.key) < 0)
+    if (keys.indexOf(e.key) < 0) {
         keys.push(e.key);
-    onKeyPress();
+        onKeyPress();
+    }
 });
 
 addEventListener('keyup', function (e) {
