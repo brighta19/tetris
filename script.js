@@ -4,10 +4,16 @@ var ctx = canvas.getContext('2d');
 var prevKeys = [];
 var keys = [];
 
+var updatesPerSecond = 20;
 var BLOCK_SIZE = 24;
 var shape = undefined;
 var grid = new Grid();
 var queue = new Queue();
+
+var tickers = {
+    land: new Ticker(updatesPerSecond * 0.8),
+    forceLand: new Ticker(updatesPerSecond * 2),
+};
 var timers = {
     initialMove: new Timer(200),
     move: new Timer(40),
@@ -39,6 +45,7 @@ function update() {
         if (isLocationValid(blocks)) {
             shape.translateBlocks(-1, 0);
             timers.move.reset();
+            tickers.land.reset();
         }
     }
     
@@ -47,7 +54,22 @@ function update() {
         if (isLocationValid(blocks)) {
             shape.translateBlocks(1, 0);
             timers.move.reset();
+            tickers.land.reset();
         }
+    }
+    
+    if (isKeyPressed((" ")) && !wasKeyPressed(" ")) {
+        blocks = shape.getTranslatedBlocks(0, 1);
+        
+        while (isLocationValid(blocks)) {
+            shape.translateBlocks(0, 1);
+            blocks = shape.getTranslatedBlocks(0, 1);
+        }
+        
+        landShape();
+        grid.tryClearingLines();
+        setShape();
+        timers.autoGoDown.reset();
     }
     
     if (isKeyPressed("ArrowDown")) {
@@ -58,14 +80,23 @@ function update() {
         }
     }
     
-    
-    blocks = shape.getBlocks();
-    if (!isLocationValid(blocks))
+    blocks = shape.getTranslatedBlocks(0, 1);
+    if (isLocationValid(blocks)) {
+        if (timers.autoGoDown.isDone()) {
+            shape.translateBlocks(0, 1);
+            timers.autoGoDown.reset();
+        }
+    }
+    else {
         console.log("strange");
+        tickers.land.tick();
+        tickers.forceLand.tick();
+    }
     
-    
-    if (timers.autoGoDown.isDone()) {
-        tryMovingShape(0, 1);
+    if (tickers.land.isDone() || tickers.forceLand.isDone()) {
+        landShape();
+        grid.tryClearingLines();
+        setShape();
         timers.autoGoDown.reset();
     }
     
@@ -74,6 +105,16 @@ function update() {
     prevKeys = [];
     for (var i = 0; i < keys.length; i++)
         prevKeys[i] = keys[i];
+}
+
+function landShape() {
+    var blocks = shape.getBlocks(),
+        i, block;
+        
+    for (i = 0; i < blocks.length; i++) {
+        block = blocks[i];
+        grid.setBlock(block.x, block.y, shape.color);
+    }
 }
 
 function tryMovingShape(x, y) {
@@ -88,8 +129,8 @@ function tryMovingShape(x, y) {
             block = blocks[i];
             grid.setBlock(block.x - x , block.y - y, shape.color);
         }
-        grid.tryClearingLines();
-        setShape();
+        // grid.tryClearingLines();
+        // setShape();
     }
 }
 
@@ -113,6 +154,9 @@ function isLocationValid(blocks) {
 function setShape() {
     var block = queue.getNextBlock();
     shape = new Tetromino(block);
+    
+    tickers.land.reset();
+    tickers.forceLand.reset();
 }
 
 function draw() {
@@ -178,6 +222,7 @@ function onKeyPress() {
         if (isLocationValid(blocks)) {
             shape.translateBlocks(-1, 0);
             timers.initialMove.reset();
+            tickers.land.reset();
         }
     }
     
@@ -186,6 +231,7 @@ function onKeyPress() {
         if (isLocationValid(blocks)) {
             shape.translateBlocks(1, 0);
             timers.initialMove.reset();
+            tickers.land.reset();
         }
     }
 }
@@ -205,7 +251,7 @@ function start() {
     setInterval(function () {
         update();
         draw();
-    }, 50);
+    }, 1000 / updatesPerSecond);
 }
 
 addEventListener('keydown', function (e) {
