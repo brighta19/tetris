@@ -2,15 +2,7 @@ function Queue() {
     this.queue = [];
 
     this.generateSetOfBlocks = function () {
-        var blocks = [
-            Tetromino.I,
-            Tetromino.J,
-            Tetromino.L,
-            Tetromino.O,
-            Tetromino.S,
-            Tetromino.T,
-            Tetromino.Z,
-        ];
+        var blocks = Tetromino.getTetrominoes();
 
         while (blocks.length > 0) {
             var randomIndex = Math.floor(Math.random() * blocks.length);

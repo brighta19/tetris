@@ -117,23 +117,6 @@ function landShape() {
     }
 }
 
-function tryMovingShape(x, y) {
-    var blocks = shape.getTranslatedBlocks(x, y),
-        i, block;
-    
-    if (isLocationValid(blocks)) {
-        shape.translateBlocks(x, y);
-    }
-    else {
-        for (i = 0; i < blocks.length; i++) {
-            block = blocks[i];
-            grid.setBlock(block.x - x , block.y - y, shape.color);
-        }
-        // grid.tryClearingLines();
-        // setShape();
-    }
-}
-
 function isLocationValid(blocks) {
     var i, block;
     

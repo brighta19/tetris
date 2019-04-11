@@ -10,8 +10,8 @@ function Tetromino(tetrimino) {
         this.y += y;
     };
     
-    this.rotateBlocks = function (x) {
-        var rotation = this.rotation + x;
+    this.rotateBlocks = function (rot) {
+        var rotation = this.rotation + rot;
         
         if (rotation > this.blocks.length - 1)
             rotation = 0;
@@ -22,8 +22,16 @@ function Tetromino(tetrimino) {
     };
     
     this.getTranslatedBlocks = function (x, y, rot) {
-        var rotation = (rot != undefined) ? rot : this.rotation,
+        var rotation = this.rotation,
             blocks = [];
+        
+        if (rot != undefined)
+            rotation += rot;
+        
+        if (rotation > this.blocks.length - 1)
+            rotation = 0;
+        if (rotation < 0)
+            rotation = this.blocks.length - 1;
         
         for (var i = 0; i < this.blocks[rotation].length; i++) {
             var block = this.blocks[rotation][i];
@@ -36,15 +44,8 @@ function Tetromino(tetrimino) {
         return blocks;
     };
     
-    this.getRotatedBlocks = function (x) {
-        var rotation = this.rotation + x;
-        
-        if (rotation > this.blocks.length - 1)
-            rotation = 0;
-        if (rotation < 0)
-            rotation = this.blocks.length - 1;
-            
-        return this.getTranslatedBlocks(0, 0, rotation);
+    this.getRotatedBlocks = function (rot) {
+        return this.getTranslatedBlocks(0, 0, rot);
     };
     
     this.getBlocks = function () {
@@ -111,4 +112,16 @@ Tetromino.I = {
         [[0, 2], [1, 2], [2, 2], [3, 2]],
         [[1, 0], [1, 1], [1, 2], [1, 3]],
     ],
+};
+
+Tetromino.getTetrominoes = function () {
+    return [
+        Tetromino.I,
+        Tetromino.J,
+        Tetromino.L,
+        Tetromino.O,
+        Tetromino.S,
+        Tetromino.T,
+        Tetromino.Z,
+    ];
 };
