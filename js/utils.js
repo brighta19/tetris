@@ -1,3 +1,15 @@
+function Timer(duration) {
+    this.duration = duration;
+    
+    this.isDone = function () {
+        return this.startTime == undefined || (Date.now() - this.startTime) >= duration;
+    };
+    
+    this.reset = function () {
+        this.startTime = Date.now();
+    };
+}
+
 function Ticker(maxTicks) {
     this.maxTicks = maxTicks;
     
@@ -13,3 +25,4 @@ function Ticker(maxTicks) {
         this.ticks = 0;
     };
 }
+

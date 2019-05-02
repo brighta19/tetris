@@ -1,4 +1,3 @@
-//http://cslibrary.stanford.edu/112/TetrisAssignment.pdf
 var canvas = document.getElementById("cvs");
 var ctx = canvas.getContext('2d');
 var prevKeys = [];
@@ -217,7 +216,9 @@ function drawGhostBlock(offsetX, offsetY) {
     ctx.save();
     ctx.beginPath();
     for (var i = 0; i < blocks.length; i++) {
-        ctx.rect(offsetX + blocks[i].x * grid.blockSize, offsetY + blocks[i].y * grid.blockSize, grid.blockSize, grid.blockSize);
+        ctx.rect(offsetX + blocks[i].x * grid.blockSize,
+            offsetY + blocks[i].y * grid.blockSize,
+            grid.blockSize, grid.blockSize);
     }
     ctx.fillStyle = "rgba(0, 0, 0, 0.4)";
     ctx.fill();
