@@ -142,6 +142,19 @@ function setShape() {
     tickers.forceLand.reset();
 }
 
+function getGhostBlock() {
+    var yTranslation = 1;
+    var blocks = shape.getTranslatedBlocks(0, 0);
+    var nextBlocks = shape.getTranslatedBlocks(0, yTranslation);
+    
+    while (isLocationValid(nextBlocks)) {
+        blocks = shape.getTranslatedBlocks(0, yTranslation);
+        yTranslation++;
+        nextBlocks = shape.getTranslatedBlocks(0, yTranslation);
+    }
+    return blocks;
+}
+
 function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     
@@ -150,6 +163,7 @@ function draw() {
     
     drawGrid(offsetX, offsetY);
     drawShape(offsetX, offsetY);
+    drawGhostBlock(offsetX, offsetY);
 }
 
 function drawGrid(offsetX, offsetY) {
@@ -197,10 +211,23 @@ function drawShape(offsetX, offsetY) {
     ctx.restore();
 }
 
+function drawGhostBlock(offsetX, offsetY) {
+    var blocks = getGhostBlock();
+    
+    ctx.save();
+    ctx.beginPath();
+    for (var i = 0; i < blocks.length; i++) {
+        ctx.rect(offsetX + blocks[i].x * grid.blockSize, offsetY + blocks[i].y * grid.blockSize, grid.blockSize, grid.blockSize);
+    }
+    ctx.fillStyle = "rgba(0, 0, 0, 0.4)";
+    ctx.fill();
+    ctx.restore();
+}
+
 function onKeyPress() {
     var blocks;
     
-    if (isKeyPressed("ArrowLeft")) {
+    if (isKeyPressed("ArrowLeft") && !wasKeyPressed("ArrowLeft")) {
         blocks = shape.getTranslatedBlocks(-1, 0);
         if (isLocationValid(blocks)) {
             shape.translateBlocks(-1, 0);
@@ -209,7 +236,7 @@ function onKeyPress() {
         }
     }
     
-    if (isKeyPressed("ArrowRight")) {
+    if (isKeyPressed("ArrowRight") && !wasKeyPressed("ArrowRight")) {
         blocks = shape.getTranslatedBlocks(1, 0);
         if (isLocationValid(blocks)) {
             shape.translateBlocks(1, 0);
