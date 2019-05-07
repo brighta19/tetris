@@ -4,8 +4,11 @@ var prevKeys = [];
 var keys = [];
 
 var updatesPerSecond = 20;
-var BLOCK_SIZE = 24;
-var shape = undefined;
+var BLOCK_SIZE = 25;
+var currentShape = undefined;
+var shapeBeingHeld = undefined;
+var hasSwitchedBlock = false;
+var holdingBlock = false;
 var grid = new Grid();
 var queue = new Queue();
 
@@ -21,68 +24,259 @@ var timers = {
 
 function update() {
     var initMoveTimerDone = timers.initialMove.isDone(),
-        moveTimerDone = timers.move.isDone(),
-        blocks;
+        moveTimerDone = timers.move.isDone();
+        
+    if ((isKeyPressed("C") && !wasKeyPressed("C")) ||
+    (isKeyPressed("c") && !wasKeyPressed("c")) && !hasSwitchedBlock) {
+        var isShapeHeld = (shapeBeingHeld != undefined) ? true : false;
+        var shapeBeingHeld_ = shapeBeingHeld;
+        
+        shapeBeingHeld = currentShape.type;
+        if (isShapeHeld)
+            currentShape = new Tetromino(Tetromino[shapeBeingHeld_]);
+        else
+            setShape();
+        
+        timers.autoGoDown.reset();
+        tickers.land.reset();
+        tickers.forceLand.reset();
+        
+        holdingBlock = false;
+        hasSwitchedBlock = true;
+    }
+    
+    if (isKeyPressed((" ")) && !wasKeyPressed(" ")) {
+        var y = 0;
+        while (isLocationValid( currentShape.getTranslatedBlocks(0, y+1) )) {
+            y++;
+        }
+        currentShape.translateBlocks(0, y);
+        
+        holdingBlock = true;
+    }
+    
+    if (holdingBlock && !isKeyPressed(" ") && wasKeyPressed(" ")) {
+        landShape();
+        grid.tryClearingLines();
+        setShape();
+        hasSwitchedBlock = false;
+        timers.autoGoDown.reset();
+        holdingBlock = false;
+    }
     
     if (isKeyPressed("ArrowUp") && !wasKeyPressed("ArrowUp")) {
-        blocks = shape.getRotatedBlocks(1);
-        if (isLocationValid(blocks)) {
-            shape.rotateBlocks(1);
+        if (isLocationValid( currentShape.getRotatedBlocks(1) )) {
+            currentShape.rotateBlocks(1);
+            if (holdingBlock) {
+                var y = 0;
+                while (isLocationValid( currentShape.getTranslatedBlocks(0, y+1) )) {
+                    y++;
+                }
+                currentShape.translateBlocks(0, y);
+            }
+            tickers.land.reset();
+        }
+        else if (isLocationValid( currentShape.getTranslatedBlocks(1, 0, 1) )) {
+            currentShape.rotateBlocks(1);
+            currentShape.translateBlocks(1, 0);
+            if (holdingBlock) {
+                var y = 0;
+                while (isLocationValid( currentShape.getTranslatedBlocks(0, y+1) )) {
+                    y++;
+                }
+                currentShape.translateBlocks(0, y);
+            }
+            tickers.land.reset();
+        }
+        else if (isLocationValid( currentShape.getTranslatedBlocks(-1, 0, 1) )) {
+            currentShape.rotateBlocks(1);
+            currentShape.translateBlocks(-1, 0);
+            if (holdingBlock) {
+                var y = 0;
+                while (isLocationValid( currentShape.getTranslatedBlocks(0, y+1) )) {
+                    y++;
+                }
+                currentShape.translateBlocks(0, y);
+            }
+            tickers.land.reset();
+        }
+        else if (isLocationValid( currentShape.getTranslatedBlocks(1, 1, 1) )) {
+            currentShape.rotateBlocks(1);
+            currentShape.translateBlocks(1, 1);
+            if (holdingBlock) {
+                var y = 0;
+                while (isLocationValid( currentShape.getTranslatedBlocks(0, y+1) )) {
+                    y++;
+                }
+                currentShape.translateBlocks(0, y);
+            }
+            tickers.land.reset();
+        }
+        else if (isLocationValid( currentShape.getTranslatedBlocks(-1, 1, 1) )) {
+            currentShape.rotateBlocks(1);
+            currentShape.translateBlocks(-1, 1);
+            if (holdingBlock) {
+                var y = 0;
+                while (isLocationValid( currentShape.getTranslatedBlocks(0, y+1) )) {
+                    y++;
+                }
+                currentShape.translateBlocks(0, y);
+            }
+            tickers.land.reset();
+        }
+        else if (isLocationValid( currentShape.getTranslatedBlocks(-1, 2, 1) )) {
+            currentShape.rotateBlocks(1);
+            currentShape.translateBlocks(-1, 2);
+            if (holdingBlock) {
+                var y = 0;
+                while (isLocationValid( currentShape.getTranslatedBlocks(0, y+1) )) {
+                    y++;
+                }
+                currentShape.translateBlocks(0, y);
+            }
+            tickers.land.reset();
+        }
+        else if (isLocationValid( currentShape.getTranslatedBlocks(-1, 2, 1) )) {
+            currentShape.rotateBlocks(1);
+            currentShape.translateBlocks(-1, 2);
+            if (holdingBlock) {
+                var y = 0;
+                while (isLocationValid( currentShape.getTranslatedBlocks(0, y+1) )) {
+                    y++;
+                }
+                currentShape.translateBlocks(0, y);
+            }
+            tickers.land.reset();
         }
     }
     
     if ((isKeyPressed("z") && !wasKeyPressed("z")) ||
-    isKeyPressed("Z") &&  !wasKeyPressed("Z")) {
-        blocks = shape.getRotatedBlocks(-1);
-        if (isLocationValid(blocks)) {
-            shape.rotateBlocks(-1);
+    (isKeyPressed("Z") &&  !wasKeyPressed("Z"))) {
+        if (isLocationValid( currentShape.getRotatedBlocks(-1) )) {
+            currentShape.rotateBlocks(-1);
+            if (holdingBlock) {
+                var y = 0;
+                while (isLocationValid( currentShape.getTranslatedBlocks(0, y+1) )) {
+                    y++;
+                }
+                currentShape.translateBlocks(0, y);
+            }
+            tickers.land.reset();
+        }
+        else if (isLocationValid( currentShape.getTranslatedBlocks(1, 0, -1) )) {
+            currentShape.rotateBlocks(-1);
+            currentShape.translateBlocks(1, 0);
+            if (holdingBlock) {
+                var y = 0;
+                while (isLocationValid( currentShape.getTranslatedBlocks(0, y+1) )) {
+                    y++;
+                }
+                currentShape.translateBlocks(0, y);
+            }
+            tickers.land.reset();
+        }
+        else if (isLocationValid( currentShape.getTranslatedBlocks(-1, 0, -1) )) {
+            currentShape.rotateBlocks(-1);
+            currentShape.translateBlocks(-1, 0);
+            if (holdingBlock) {
+                var y = 0;
+                while (isLocationValid( currentShape.getTranslatedBlocks(0, y+1) )) {
+                    y++;
+                }
+                currentShape.translateBlocks(0, y);
+            }
+            tickers.land.reset();
+        }
+        else if (isLocationValid( currentShape.getTranslatedBlocks(1, 1, -1) )) {
+            currentShape.rotateBlocks(-1);
+            currentShape.translateBlocks(1, 1);
+            if (holdingBlock) {
+                var y = 0;
+                while (isLocationValid( currentShape.getTranslatedBlocks(0, y+1) )) {
+                    y++;
+                }
+                currentShape.translateBlocks(0, y);
+            }
+            tickers.land.reset();
+        }
+        else if (isLocationValid( currentShape.getTranslatedBlocks(-1, 1, -1) )) {
+            currentShape.rotateBlocks(-1);
+            currentShape.translateBlocks(-1, 1);
+            if (holdingBlock) {
+                var y = 0;
+                while (isLocationValid( currentShape.getTranslatedBlocks(0, y+1) )) {
+                    y++;
+                }
+                currentShape.translateBlocks(0, y);
+            }
+            tickers.land.reset();
+        }
+        else if (isLocationValid( currentShape.getTranslatedBlocks(-1, 2, -1) )) {
+            currentShape.rotateBlocks(-1);
+            currentShape.translateBlocks(-1, 2);
+            if (holdingBlock) {
+                var y = 0;
+                while (isLocationValid( currentShape.getTranslatedBlocks(0, y+1) )) {
+                    y++;
+                }
+                currentShape.translateBlocks(0, y);
+            }
+            tickers.land.reset();
+        }
+        else if (isLocationValid( currentShape.getTranslatedBlocks(-1, 2, 1) )) {
+            currentShape.rotateBlocks(1);
+            currentShape.translateBlocks(-1, 2);
+            if (holdingBlock) {
+                var y = 0;
+                while (isLocationValid( currentShape.getTranslatedBlocks(0, y+1) )) {
+                    y++;
+                }
+                currentShape.translateBlocks(0, y);
+            }
+            tickers.land.reset();
         }
     }
     
     if (isKeyPressed("ArrowLeft") && initMoveTimerDone && moveTimerDone) {
-        blocks = shape.getTranslatedBlocks(-1, 0);
-        if (isLocationValid(blocks)) {
-            shape.translateBlocks(-1, 0);
+        if (isLocationValid( currentShape.getTranslatedBlocks(-1, 0) )) {
+            currentShape.translateBlocks(-1, 0);
+            if (holdingBlock) {
+                var y = 0;
+                while (isLocationValid( currentShape.getTranslatedBlocks(0, y+1) )) {
+                    y++;
+                }
+                currentShape.translateBlocks(0, y);
+            }
             timers.move.reset();
             tickers.land.reset();
         }
     }
     
     if (isKeyPressed("ArrowRight") && initMoveTimerDone && moveTimerDone) {
-        blocks = shape.getTranslatedBlocks(1, 0);
-        if (isLocationValid(blocks)) {
-            shape.translateBlocks(1, 0);
+        if (isLocationValid( currentShape.getTranslatedBlocks(1, 0) )) {
+            currentShape.translateBlocks(1, 0);
+            if (holdingBlock) {
+                var y = 0;
+                while (isLocationValid( currentShape.getTranslatedBlocks(0, y+1) )) {
+                    y++;
+                }
+                currentShape.translateBlocks(0, y);
+            }
             timers.move.reset();
             tickers.land.reset();
         }
     }
     
-    if (isKeyPressed((" ")) && !wasKeyPressed(" ")) {
-        blocks = shape.getTranslatedBlocks(0, 1);
-        
-        while (isLocationValid(blocks)) {
-            shape.translateBlocks(0, 1);
-            blocks = shape.getTranslatedBlocks(0, 1);
-        }
-        
-        landShape();
-        grid.tryClearingLines();
-        setShape();
-        timers.autoGoDown.reset();
-    }
-    
     if (isKeyPressed("ArrowDown")) {
-        blocks = shape.getTranslatedBlocks(0, 1);
-        if (isLocationValid(blocks)) {
-            shape.translateBlocks(0, 1);
+        if (isLocationValid( currentShape.getTranslatedBlocks(0, 1) )) {
+            currentShape.translateBlocks(0, 1);
             timers.autoGoDown.reset();
         }
     }
     
-    blocks = shape.getTranslatedBlocks(0, 1);
-    if (isLocationValid(blocks)) {
+    if (isLocationValid( currentShape.getTranslatedBlocks(0, 1) )) {
         if (timers.autoGoDown.isDone()) {
-            shape.translateBlocks(0, 1);
+            currentShape.translateBlocks(0, 1);
             timers.autoGoDown.reset();
         }
     }
@@ -96,7 +290,9 @@ function update() {
         landShape();
         grid.tryClearingLines();
         setShape();
+        hasSwitchedBlock = false;
         timers.autoGoDown.reset();
+        holdingBlock = false;
     }
     
     
@@ -107,12 +303,12 @@ function update() {
 }
 
 function landShape() {
-    var blocks = shape.getBlocks(),
+    var blocks = currentShape.getBlocks(),
         i, block;
         
     for (i = 0; i < blocks.length; i++) {
         block = blocks[i];
-        grid.setBlock(block.x, block.y, shape.color);
+        grid.setBlock(block.x, block.y, currentShape.color);
     }
 }
 
@@ -135,21 +331,22 @@ function isLocationValid(blocks) {
 
 function setShape() {
     var block = queue.getNextBlock();
-    shape = new Tetromino(block);
+    currentShape = new Tetromino(block);
     
+    timers.autoGoDown.reset();
     tickers.land.reset();
     tickers.forceLand.reset();
 }
 
 function getGhostBlock() {
     var yTranslation = 1;
-    var blocks = shape.getTranslatedBlocks(0, 0);
-    var nextBlocks = shape.getTranslatedBlocks(0, yTranslation);
+    var blocks = currentShape.getTranslatedBlocks(0, 0);
+    var nextBlocks = currentShape.getTranslatedBlocks(0, yTranslation);
     
     while (isLocationValid(nextBlocks)) {
-        blocks = shape.getTranslatedBlocks(0, yTranslation);
+        blocks = currentShape.getTranslatedBlocks(0, yTranslation);
         yTranslation++;
-        nextBlocks = shape.getTranslatedBlocks(0, yTranslation);
+        nextBlocks = currentShape.getTranslatedBlocks(0, yTranslation);
     }
     return blocks;
 }
@@ -191,10 +388,10 @@ function drawGrid(offsetX, offsetY) {
 }
 
 function drawShape(offsetX, offsetY) {
-    var blocks = shape.getBlocks();
+    var blocks = currentShape.getBlocks();
     
     ctx.save();
-    ctx.fillStyle = shape.color;
+    ctx.fillStyle = currentShape.color;
     ctx.strokeStyle = "white";
     for (var i = 0; i < blocks.length; i++) {
         var block = blocks[i];
@@ -229,18 +426,32 @@ function onKeyPress() {
     var blocks;
     
     if (isKeyPressed("ArrowLeft") && !wasKeyPressed("ArrowLeft")) {
-        blocks = shape.getTranslatedBlocks(-1, 0);
+        blocks = currentShape.getTranslatedBlocks(-1, 0);
         if (isLocationValid(blocks)) {
-            shape.translateBlocks(-1, 0);
+            currentShape.translateBlocks(-1, 0);
+            if (holdingBlock) {
+                var y = 0;
+                while (isLocationValid( currentShape.getTranslatedBlocks(0, y+1) )) {
+                    y++;
+                }
+                currentShape.translateBlocks(0, y);
+            }
             timers.initialMove.reset();
             tickers.land.reset();
         }
     }
     
     if (isKeyPressed("ArrowRight") && !wasKeyPressed("ArrowRight")) {
-        blocks = shape.getTranslatedBlocks(1, 0);
+        blocks = currentShape.getTranslatedBlocks(1, 0);
         if (isLocationValid(blocks)) {
-            shape.translateBlocks(1, 0);
+            currentShape.translateBlocks(1, 0);
+            if (holdingBlock) {
+                var y = 0;
+                while (isLocationValid( currentShape.getTranslatedBlocks(0, y+1) )) {
+                    y++;
+                }
+                currentShape.translateBlocks(0, y);
+            }
             timers.initialMove.reset();
             tickers.land.reset();
         }

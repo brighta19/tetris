@@ -2,6 +2,7 @@ body {
     margin: 0;
     background: #FAA;
 }
+
 #title {
     color: #FFF;
     text-align: center;
@@ -11,9 +12,53 @@ body {
     text-decoration: underline;
     text-shadow: 0 0 5px #FA0;
 }
+
+.game-container {
+    width: 450px;
+    height: 500px;
+    margin: 0 auto;
+    background: #FFF;
+}
+
+.side-container {
+    display: block;
+    width: 100px;
+    height: 500px;
+    float: left;
+    background: white;
+}
+
+.tetris-container {
+    display: block;
+    width: 250px;
+    height: 500px;
+    float: left;
+    background: blue;
+}
+
+.feature-container {
+    display: block;
+    margin: 20px auto;
+    width: 100px;
+    padding: 10px 0;
+    background: #FFF;
+}
+
+.feature-container p {
+    display: block;
+    margin: 0;
+    text-align: center;
+    font-family: sans-serif;
+}
+
+.feature-container canvas {
+    display: block;
+    margin: 5px auto;
+    border: 1px solid black;
+}
+
 #cvs {
     display: block;
     margin: 0 auto;
     background: #FFF;
-    box-shadow: 0 0 5px #FA0;
 }

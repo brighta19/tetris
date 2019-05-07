@@ -1,7 +1,8 @@
 function Tetromino(tetrimino) {
+    this.type = tetrimino.type;
     this.color = tetrimino.color;
-    this.rotation = 0;
     this.blocks = tetrimino.blocks;
+    this.rotation = 0;
     this.x = 4;
     this.y = 0;
     
@@ -54,6 +55,7 @@ function Tetromino(tetrimino) {
 }
 
 Tetromino.Z = {
+    type: "Z",
     color: "red",
     blocks: [
         [[0, 0], [1, 0], [1, 1], [2, 1]],
@@ -63,6 +65,7 @@ Tetromino.Z = {
     ],
 };
 Tetromino.S = {
+    type: "S",
     color: "lime",
     blocks: [
         [[0, 1], [1, 1], [1, 0], [2, 0]],
@@ -72,6 +75,7 @@ Tetromino.S = {
     ],
 };
 Tetromino.T = {
+    type: "T",
     color: "purple",
     blocks: [
         [[0, 1], [1, 0], [2, 1], [1, 1]],
@@ -81,6 +85,7 @@ Tetromino.T = {
     ],
 };
 Tetromino.L = {
+    type: "L",
     color: "orange",
     blocks: [
         [[0, 1], [1, 1], [2, 1], [2, 0]],
@@ -90,6 +95,7 @@ Tetromino.L = {
     ],
 };
 Tetromino.J = {
+    type: "J",
     color: "darkblue",
     blocks: [
         [[0, 0], [0, 1], [1, 1], [2, 1]],
@@ -99,12 +105,14 @@ Tetromino.J = {
     ],
 };
 Tetromino.O = {
+    type: "O",
     color: "gold",
     blocks: [
         [[0, 0], [1, 0], [0, 1], [1, 1]]
     ],
 };
 Tetromino.I = {
+    type: "I",
     color: "dodgerblue",
     blocks: [
         [[0, 1], [1, 1], [2, 1], [3, 1]],
