@@ -4,25 +4,24 @@ function Game(canvas) {
     this.keysPressed = [];
     this.previousKeysPressed = [];
     
-    this.updatesPerSecond = 30;
+    this.updatesPerSecond = 20;
     this.blockSize = 25;
     
-    this.updater = new Updater(this);
     this.renderer = new Renderer(this);
     
     this.grid = new Grid();
     this.tetromino = null;
-    this.heldTetromino = null;
-    this.hasHeldTetromino = false;
+    this.heldTetrominoType = null;
+    this.hasSwitchedTetromino = false;
     
     this.tickers = {
         initialMove: new Ticker(this.updatesPerSecond * 0.2),
-        move:        new Ticker(this.updatesPerSecond * 0.04),
+        move:        new Ticker(this.updatesPerSecond * 0.03),
+        goDown:      new Ticker(this.updatesPerSecond * 0.05),
         autoGoDown:  new Ticker(this.updatesPerSecond * 1),
         land:        new Ticker(this.updatesPerSecond * 0.8),
         forceLand:   new Ticker(this.updatesPerSecond * 2),
     };
-    
     
     this.start = function () {
         var self = this;
@@ -35,7 +34,7 @@ function Game(canvas) {
             
             this.delta = (currentDate - self.previousDate) / 1000;
             
-            self.updater.update();
+            self.update();
             self.renderer.render();
 
             self.previousDate = currentDate;
@@ -43,61 +42,259 @@ function Game(canvas) {
         
         this.createTetromino();
     };
+
+    this.update = function () {
+        this.tickers.goDown.tick();
+        this.tickers.move.tick();
+        this.tickers.initialMove.tick();
+        this.tickers.autoGoDown.tick();
+
     
-    this.createTetromino = function () {
-        var type = this.queue.getNextTetrominoType();
-        
-        this.tetromino = new Tetromino(type);
-    };
-    
-    this.onKeyDown = function (event) {
-        if (this.keysPressed.indexOf(event.key) < 0) {
-            this.keysPressed.push(event.key);
+        if (this.isKeyPressed("ArrowLeft") && this.tickers.initialMove.isDone() && this.tickers.move.isDone()) {
+            if (this.isLocationValid( this.getTransformedBlocks(-1, 0, 0) )) {
+                this.tetromino.move(-1, 0);
+                this.tickers.move.reset();
+                this.tickers.land.reset();
+            }
         }
         
+        if (this.isKeyPressed("ArrowRight") && this.tickers.initialMove.isDone() && this.tickers.move.isDone()) {
+            if (this.isLocationValid( this.getTransformedBlocks(1, 0, 0) )) {
+                this.tetromino.move(1, 0);
+                this.tickers.move.reset();
+                this.tickers.land.reset();
+            }
+        }
         
-        var blocks;
+        if (this.isKeyPressed("ArrowDown") && this.tickers.goDown.isDone()) {
+            if (this.isLocationValid( this.getTransformedBlocks(0, 1, 0) )) {
+                this.tetromino.move(0, 1);
+                this.tickers.goDown.reset();
+                this.tickers.autoGoDown.reset();
+            }
+        }
+
         
+        if (this.isLocationValid( this.getTransformedBlocks(0, 1, 0) )) {
+            if (this.tickers.autoGoDown.isDone()) {
+                this.tetromino.move(0, 1);
+                this.tickers.autoGoDown.reset();
+            }
+        }
+        else {
+            console.log("strange");
+            this.tickers.land.tick();
+            this.tickers.forceLand.tick();
+        }
+        
+        if (this.tickers.land.isDone() ||
+        this.tickers.forceLand.isDone()) {
+            this.placeTetromino();
+            this.grid.tryClearingLines();
+            this.createTetromino();
+            this.hasSwitchedTetromino = false;
+        }
+        
+        this.updatePreviousKeys();
+    }
+    
+    this.createTetromino = function (type) {
+        var t = type || this.queue.getNextTetrominoType();
+        
+        this.tetromino = new Tetromino(t);
+
+        this.tickers.autoGoDown.reset();
+        this.tickers.land.reset();
+        this.tickers.forceLand.reset();
+    };
+
+    this.placeTetromino = function () {
+        var properties = Tetromino.Properties[this.tetromino.type];
+        var blocks = properties.blocks[this.tetromino.rotation];
+        var color = properties.color;
+
+        for (var i = 0; i < blocks.length; i++) {
+            var block = blocks[i];
+            this.grid.setBlock(this.tetromino.x + block[0], this.tetromino.y + block[1], color);
+        }
+    };
+
+    this.getPredictedLandingY = function () { 
+        var y = 0;
+        while (this.isLocationValid( this.getTransformedBlocks(0, y + 1, 0) )) {
+            y++;
+        }
+        return y;
+    }
+
+    this.getTransformedBlocks = function (translateX, translateY, rotate) {
+        var blockRotations = Tetromino.Properties[this.tetromino.type].blocks;
+        var r = this.tetromino.rotation + rotate;
+
+        if (r < 0)
+            r = this.tetromino.MAX_ROTATION;
+        if (r > this.tetromino.MAX_ROTATION)
+            r = 0;
+
+        var blocks = blockRotations[r];
+        var transformedBlocks = [];
+
+        for (var i = 0; i < blocks.length; i++) {
+            var block = blocks[i];
+            transformedBlocks[i] = [
+                block[0] + this.tetromino.x + translateX,
+                block[1] + this.tetromino.y + translateY,
+            ];
+        }
+        
+        return transformedBlocks;
+    }
+
+    this.isLocationValid = function (blocks) {
+        for (var i = 0; i < blocks.length; i++) {
+            var block = blocks[i];
+
+            if (block[0] < 0 ||
+            block[0] > this.grid.cols - 1 ||
+            block[1] > this.grid.rows - 1 ||
+            this.grid.getBlock(block[0], block[1]) != this.grid.EMPTY_BLOCK) {
+                return false;
+            }
+        }
+
+        return true;
+    };
+    
+    this.onKeyPress = function () {
+        if ((this.isKeyPressed("C") && !this.wasKeyPressed("C")) ||
+        (this.isKeyPressed("c") && !this.wasKeyPressed("c")) && !this.hasSwitchedTetromino) {
+            var shapeBeingHeld_ = this.heldTetrominoType;
+            
+            this.heldTetrominoType = this.tetromino.type;
+
+            this.createTetromino(shapeBeingHeld_)
+            
+            this.hasSwitchedTetromino = true;
+        }
+
+        if (this.isKeyPressed((" ")) && !this.wasKeyPressed(" ")) {
+            var y = this.getPredictedLandingY();
+            this.tetromino.move(0, y);
+
+            this.placeTetromino();
+            this.grid.tryClearingLines();
+            this.createTetromino();
+            this.hasSwitchedTetromino = false;
+        }
+
         if (this.isKeyPressed("ArrowLeft") && !this.wasKeyPressed("ArrowLeft")) {
-            console.log("left")
-            // blocks = currentShape.getTranslatedBlocks(-1, 0);
-            // if (isLocationValid(blocks)) {
-            //     currentShape.translateBlocks(-1, 0);
-            //     if (holdingBlock) {
-            //         var y = 0;
-            //         while (isLocationValid( currentShape.getTranslatedBlocks(0, y+1) )) {
-            //             y++;
-            //         }
-            //         currentShape.translateBlocks(0, y);
-            //     }
-            //     timers.initialMove.reset();
-            //     tickers.land.reset();
-            // }
+            if (this.isLocationValid( this.getTransformedBlocks(-1, 0, 0) )) {
+                this.tetromino.move(-1, 0);
+                this.tickers.initialMove.reset();
+                this.tickers.land.reset();
+                moved = true;
+            }
         }
         
         if (this.isKeyPressed("ArrowRight") && !this.wasKeyPressed("ArrowRight")) {
-            console.log("right")
-            // blocks = currentShape.getTranslatedBlocks(1, 0);
-            // if (isLocationValid(blocks)) {
-            //     currentShape.translateBlocks(1, 0);
-            //     if (holdingBlock) {
-            //         var y = 0;
-            //         while (isLocationValid( currentShape.getTranslatedBlocks(0, y+1) )) {
-            //             y++;
-            //         }
-            //         currentShape.translateBlocks(0, y);
-            //     }
-            //     timers.initialMove.reset();
-            //     tickers.land.reset();
-            // }
+            if (this.isLocationValid( this.getTransformedBlocks(    1, 0, 0) )) {
+                this.tetromino.move(1, 0);
+                this.tickers.initialMove.reset();
+                this.tickers.land.reset();
+            }
         }
+        
+        if (this.isKeyPressed("ArrowUp") && !this.wasKeyPressed("ArrowUp")) {
+            if (this.isLocationValid( this.getTransformedBlocks(0, 0, 1) )) {
+                this.tetromino.rotate(1);
+                this.tickers.land.reset();
+            }
+            else if (this.isLocationValid( this.getTransformedBlocks(1, 0, 1) )) {
+                this.tetromino.move(1, 0);
+                this.tetromino.rotate(1);
+                this.tickers.land.reset();
+            }
+            else if (this.isLocationValid( this.getTransformedBlocks(-1, 0, 1) )) {
+                this.tetromino.move(-1, 0);
+                this.tetromino.rotate(1);
+                this.tickers.land.reset();
+            }
+            else if (this.isLocationValid( this.getTransformedBlocks(1, 1, 1) )) {
+                this.tetromino.move(1, 1);
+                this.tetromino.rotate(1);
+                this.tickers.land.reset();
+            }
+            else if (this.isLocationValid( this.getTransformedBlocks(-1, 1, 1) )) {
+                this.tetromino.move(-1, 1);
+                this.tetromino.rotate(1);
+                this.tickers.land.reset();
+            }
+            else if (this.isLocationValid( this.getTransformedBlocks(1, 2, 1) )) {
+                this.tetromino.move(1, 2);
+                this.tetromino.rotate(1);
+                this.tickers.land.reset();
+            }
+            else if (this.isLocationValid( this.getTransformedBlocks(-1, 2, 1) )) {
+                this.tetromino.move(-1, 2);
+                this.tetromino.rotate(1);
+                this.tickers.land.reset();
+            }
+        }
+    
+        if ((this.isKeyPressed("z") && !this.wasKeyPressed("z")) ||
+        (this.isKeyPressed("Z") &&  !this.wasKeyPressed("Z"))) {
+            if (this.isLocationValid( this.getTransformedBlocks(0, 0, -1) )) {
+                this.tetromino.rotate(-1);
+                this.tickers.land.reset();
+            }
+            else if (this.isLocationValid( this.getTransformedBlocks(1, 0, -1) )) {
+                this.tetromino.move(1, 0);
+                this.tetromino.rotate(-1);
+                this.tickers.land.reset();
+            }
+            else if (this.isLocationValid( this.getTransformedBlocks(-1, 0, -1) )) {
+                this.tetromino.move(-1, 0);
+                this.tetromino.rotate(-1);
+                this.tickers.land.reset();
+            }
+            else if (this.isLocationValid( this.getTransformedBlocks(1, 1, -1) )) {
+                this.tetromino.move(1, 1);
+                this.tetromino.rotate(-1);
+                this.tickers.land.reset();
+            }
+            else if (this.isLocationValid( this.getTransformedBlocks(-1, 1, -1) )) {
+                this.tetromino.rotate(-1);
+                this.tetromino.move(-1, 1);
+                this.tickers.land.reset();
+            }
+            else if (this.isLocationValid( this.getTransformedBlocks(1, 2, -1) )) {
+                this.tetromino.move(1, 2);
+                this.tetromino.rotate(-1);
+                this.tickers.land.reset();
+            }
+            else if (this.isLocationValid( this.getTransformedBlocks(-1, 2, -1) )) {
+                this.tetromino.move(-1, 2);
+                this.tetromino.rotate(-1);
+                this.tickers.land.reset();
+            }
+        }
+        
+        if (this.isKeyPressed("ArrowDown") && this.tickers.goDown.isDone()) {
+            if (this.isLocationValid( this.getTransformedBlocks(0, 1, 0) )) {
+                this.tetromino.move(0, 1);
+                this.tickers.goDown.reset();
+                this.tickers.autoGoDown.reset();
+            }
+        }
+
+        this.updatePreviousKeys();
     };
     
-    this.onKeyUp = function (event) {
-        var index = this.keysPressed.indexOf(event.key);
-        if (index >= 0) {
-            this.keysPressed.splice(index, 1);
-        }
+    this.updatePreviousKeys = function() {
+        this.previousKeysPressed = [];
+
+        for (var i = 0; i < this.keysPressed.length; i++)
+            this.previousKeysPressed[i] = this.keysPressed[i];
     };
     
     this.isKeyPressed = function (key) {
@@ -107,17 +304,8 @@ function Game(canvas) {
     this.wasKeyPressed = function (key) {
         return this.previousKeysPressed.indexOf(key) >= 0;
     };
-}
 
 
-function Updater(game) {
-    this.game = game;
-    
-    this.update = function (delta) {
-        var initMoveTickerDone = game.tickers.initialMove.isDone(),
-            moveTickerDone = game.tickers.move.isDone();
-        
-    };
 }
 
 
@@ -161,8 +349,8 @@ function Renderer(game) {
     };
     
     this.drawTetromino = function () {
-        var properties = Tetromino.Properties[game.tetromino.type];
-        var blocks = properties.blocks[game.tetromino.rotation];
+        var properties = Tetromino.Properties[this.game.tetromino.type];
+        var blocks = properties.blocks[this.game.tetromino.rotation];
         
         this.context.save();
         
@@ -172,9 +360,9 @@ function Renderer(game) {
             var block = blocks[i];
             
             this.context.beginPath();
-            this.context.rect((game.tetromino.x + block[0]) * game.grid.blockSize,
-                (game.tetromino.y + block[1]) * game.grid.blockSize,
-                game.grid.blockSize, game.grid.blockSize);
+            this.context.rect((this.game.tetromino.x + block[0]) * this.game.grid.blockSize,
+                (this.game.tetromino.y + block[1]) * this.game.grid.blockSize,
+                this.game.grid.blockSize, this.game.grid.blockSize);
             this.context.closePath();
             this.context.fill();
             this.context.stroke();
@@ -184,24 +372,38 @@ function Renderer(game) {
     };
     
     this.drawGhostTetromino = function () {
+        var blocks = this.game.getTransformedBlocks(0, this.game.getPredictedLandingY(), 0);
         
+        this.context.save();
+        this.context.beginPath();
+        for (var i = 0; i < blocks.length; i++) {
+            var block = blocks[i];
+
+            this.context.rect(block[0] * this.game.grid.blockSize,
+                block[1] * this.game.grid.blockSize,
+                this.game.grid.blockSize, this.game.grid.blockSize);
+        }
+        this.context.fillStyle = "rgba(0, 0, 0, 0.4)";
+        this.context.fill();
+        this.context.restore();
     };
 }
 
 
 function Grid() {
+    this.EMPTY_BLOCK = 0;
+
     this.rows = 20;
     this.cols = 10;
     this.grid = [];
     this.blockSize = 25;
     this.linesCleared = [];
     
-    var EMPTY = 0;
     
     for (var y = 0; y < this.rows; y++) {
         this.grid[y] = [];
         for (var x = 0; x < this.cols; x++) {
-            this.grid[y][x] = EMPTY;
+            this.grid[y][x] = this.EMPTY_BLOCK;
         }
     }
     
@@ -216,7 +418,7 @@ function Grid() {
                 
                 this.grid.unshift([]);
                 for (var x = 0; x < this.cols; x++) {
-                    this.grid[0][x] = EMPTY;
+                    this.grid[0][x] = this.EMPTY_BLOCK;
                 }
                 
                 this.linesCleared.push(i);
@@ -228,11 +430,11 @@ function Grid() {
     };
     
     this.isEmpty = function (x, y) {
-        return this.grid[y][x] == EMPTY;
+        return this.grid[y][x] == this.EMPTY_BLOCK;
     };
     
     this.isLineFull = function (y) {
-        return this.grid[y].indexOf(EMPTY);
+        return this.grid[y].indexOf(this.EMPTY_BLOCK) < 0;
     };
     
     this.setBlock = function (x, y, color) {
@@ -271,9 +473,10 @@ function Queue() {
 
 function Ticker(maxTicks) {
     this.maxTicks = maxTicks;
+    this.ticks = 0;
     
     this.isDone = function () {
-        return this.ticks == undefined || this.ticks >= this.maxTicks;
+        return this.ticks >= Math.ceil(this.maxTicks);
     };
     
     this.tick = function () {
@@ -299,27 +502,18 @@ function Tetromino(type) {
     this.rotation = 0;
     
     
-    this.move = function (direction) {
-        if (direction == this.Direction.LEFT) {
-            
-        }
-        if (direction == this.Direction.RIGHT) {
-            
-        }
+    this.move = function (x, y) {
+        this.x += x;
+        this.y += y;
     };
     
-    this.rotate = function (direction) {
-        if (direction == this.Direction.LEFT) {
-            this.rotation--;
-            if (this.rotation < 0)
-                this.rotation = this.MAX_ROTATION;
-        }
-        
-        if (direction == this.Direction.RIGHT) {
-            this.rotation++;
-            if (this.rotation > this.MAX_ROTATION)
-                this.rotation = 0;
-        }
+    this.rotate = function (r) {
+        this.rotation += r;
+
+        if (this.rotation < 0)
+            this.rotation = this.MAX_ROTATION;
+        if (this.rotation > this.MAX_ROTATION)
+            this.rotation = 0;
     };
 }
 Tetromino.getAllTypes = function () {
@@ -416,8 +610,18 @@ var canvas = document.getElementById("cvs");
 try {
     var game = new Game(document.getElementById("cvs"));
     
-    window.addEventListener('keydown', game.onKeyDown.bind(game));
-    window.addEventListener('keyup', game.onKeyUp.bind(game));
+    window.addEventListener('keydown', function (event) {
+        if (game.keysPressed.indexOf(event.key) < 0) {
+            game.keysPressed.push(event.key);
+            game.onKeyPress();
+        }
+    });
+    window.addEventListener('keyup', function (event) {
+        var index = game.keysPressed.indexOf(event.key);
+        if (index >= 0) {
+            game.keysPressed.splice(index, 1);
+        }
+    });
     
     game.start();
 }
