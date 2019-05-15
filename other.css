@@ -1,0 +1,28 @@
+body {
+    margin: 0;
+    background: #FAFAFA;
+}
+
+#title {
+    color: #AAA;
+    text-align: center;
+    font: 3em sans-serif;
+    font-weight: bold;
+    font-variant: small-caps;
+    text-decoration: underline;
+    text-shadow: 0 0 5px #FFF;
+}
+
+.game-container {
+    display: block;
+    width: 500px;
+    height: 500px;
+    margin: 0 auto;
+    background: #FFF;
+}
+
+#cvs {
+    display: block;
+    margin: 0 auto;
+    background: #FFF;
+}

@@ -1,3 +1,4 @@
+// https://harddrop.com/wiki/SRS
 function Game(canvas) {
     this.canvas = canvas;
     
@@ -13,14 +14,16 @@ function Game(canvas) {
     this.tetromino = null;
     this.heldTetrominoType = null;
     this.hasSwitchedTetromino = false;
+    this.totalLinesCleared = 0;
+    this.score = 0;
     
     this.tickers = {
         initialMove: new Ticker(this.updatesPerSecond * 0.2),
         move:        new Ticker(this.updatesPerSecond * 0.03),
         goDown:      new Ticker(this.updatesPerSecond * 0.05),
-        autoGoDown:  new Ticker(this.updatesPerSecond * 1),
+        autoGoDown:  new Ticker(this.updatesPerSecond * 1.1),
         land:        new Ticker(this.updatesPerSecond * 0.8),
-        forceLand:   new Ticker(this.updatesPerSecond * 2),
+        forceLand:   new Ticker(this.updatesPerSecond * 2.5),
     };
     
     this.start = function () {
@@ -44,7 +47,6 @@ function Game(canvas) {
     };
 
     this.update = function () {
-        this.tickers.goDown.tick();
         this.tickers.move.tick();
         this.tickers.initialMove.tick();
         this.tickers.autoGoDown.tick();
@@ -67,11 +69,7 @@ function Game(canvas) {
         }
         
         if (this.isKeyPressed("ArrowDown") && this.tickers.goDown.isDone()) {
-            if (this.isLocationValid( this.getTransformedBlocks(0, 1, 0) )) {
-                this.tetromino.move(0, 1);
-                this.tickers.goDown.reset();
-                this.tickers.autoGoDown.reset();
-            }
+            this.attemptSoftDrop();
         }
 
         
@@ -89,14 +87,58 @@ function Game(canvas) {
         
         if (this.tickers.land.isDone() ||
         this.tickers.forceLand.isDone()) {
-            this.placeTetromino();
-            this.grid.tryClearingLines();
-            this.createTetromino();
-            this.hasSwitchedTetromino = false;
+            this.land();
         }
         
+        this.tickers.goDown.tick();
+        
         this.updatePreviousKeys();
-    }
+    };
+    
+    this.hold = function () {
+        var shapeBeingHeld = this.heldTetrominoType;
+        
+        this.heldTetrominoType = this.tetromino.type;
+
+        this.createTetromino(shapeBeingHeld);
+            
+        this.hasSwitchedTetromino = true;
+    };
+    
+    this.attemptSoftDrop = function () {
+        if (this.isLocationValid( this.getTransformedBlocks(0, 1, 0) )) {
+            this.tetromino.move(0, 1);
+            this.tickers.goDown.reset();
+            this.tickers.autoGoDown.reset();
+            this.score++;
+        }
+    };
+    
+    this.doHardDrop = function () {
+        var y = this.getPredictedLandingY();
+        this.tetromino.move(0, y);
+        this.score += 2 * y;
+    };
+    
+    this.land = function () {
+        this.placeTetromino();
+        this.grid.tryClearingLines();
+        this.createTetromino();
+        
+        this.hasSwitchedTetromino = false;
+        this.totalLinesCleared += this.grid.linesCleared.length;
+        
+        if (this.grid.linesCleared.length == 1)
+            this.score += 100;
+        else if (this.grid.linesCleared.length == 2)
+            this.score += 300;
+        else if (this.grid.linesCleared.length == 3)
+            this.score += 500;
+        else if (this.grid.linesCleared.length == 4)
+            this.score += 800;
+            
+        console.log(this.score);
+    };
     
     this.createTetromino = function (type) {
         var t = type || this.queue.getNextTetrominoType();
@@ -121,11 +163,13 @@ function Game(canvas) {
 
     this.getPredictedLandingY = function () { 
         var y = 0;
+        
         while (this.isLocationValid( this.getTransformedBlocks(0, y + 1, 0) )) {
             y++;
         }
+        
         return y;
-    }
+    };
 
     this.getTransformedBlocks = function (translateX, translateY, rotate) {
         var blockRotations = Tetromino.Properties[this.tetromino.type].blocks;
@@ -166,25 +210,16 @@ function Game(canvas) {
     };
     
     this.onKeyPress = function () {
+        var wallKickTests, test, i;
+        
         if ((this.isKeyPressed("C") && !this.wasKeyPressed("C")) ||
         (this.isKeyPressed("c") && !this.wasKeyPressed("c")) && !this.hasSwitchedTetromino) {
-            var shapeBeingHeld_ = this.heldTetrominoType;
-            
-            this.heldTetrominoType = this.tetromino.type;
-
-            this.createTetromino(shapeBeingHeld_)
-            
-            this.hasSwitchedTetromino = true;
+            this.hold();
         }
 
         if (this.isKeyPressed((" ")) && !this.wasKeyPressed(" ")) {
-            var y = this.getPredictedLandingY();
-            this.tetromino.move(0, y);
-
-            this.placeTetromino();
-            this.grid.tryClearingLines();
-            this.createTetromino();
-            this.hasSwitchedTetromino = false;
+            this.doHardDrop();
+            this.land();
         }
 
         if (this.isKeyPressed("ArrowLeft") && !this.wasKeyPressed("ArrowLeft")) {
@@ -192,99 +227,110 @@ function Game(canvas) {
                 this.tetromino.move(-1, 0);
                 this.tickers.initialMove.reset();
                 this.tickers.land.reset();
-                moved = true;
             }
         }
         
         if (this.isKeyPressed("ArrowRight") && !this.wasKeyPressed("ArrowRight")) {
-            if (this.isLocationValid( this.getTransformedBlocks(    1, 0, 0) )) {
+            if (this.isLocationValid( this.getTransformedBlocks(1, 0, 0) )) {
                 this.tetromino.move(1, 0);
                 this.tickers.initialMove.reset();
                 this.tickers.land.reset();
             }
         }
         
+        // Rotate Clockwise
         if (this.isKeyPressed("ArrowUp") && !this.wasKeyPressed("ArrowUp")) {
             if (this.isLocationValid( this.getTransformedBlocks(0, 0, 1) )) {
-                this.tetromino.rotate(1);
+                this.tetromino.rotate(Tetromino.Rotations.CLOCKWISE);
                 this.tickers.land.reset();
             }
-            else if (this.isLocationValid( this.getTransformedBlocks(1, 0, 1) )) {
-                this.tetromino.move(1, 0);
-                this.tetromino.rotate(1);
-                this.tickers.land.reset();
-            }
-            else if (this.isLocationValid( this.getTransformedBlocks(-1, 0, 1) )) {
-                this.tetromino.move(-1, 0);
-                this.tetromino.rotate(1);
-                this.tickers.land.reset();
-            }
-            else if (this.isLocationValid( this.getTransformedBlocks(1, 1, 1) )) {
-                this.tetromino.move(1, 1);
-                this.tetromino.rotate(1);
-                this.tickers.land.reset();
-            }
-            else if (this.isLocationValid( this.getTransformedBlocks(-1, 1, 1) )) {
-                this.tetromino.move(-1, 1);
-                this.tetromino.rotate(1);
-                this.tickers.land.reset();
-            }
-            else if (this.isLocationValid( this.getTransformedBlocks(1, 2, 1) )) {
-                this.tetromino.move(1, 2);
-                this.tetromino.rotate(1);
-                this.tickers.land.reset();
-            }
-            else if (this.isLocationValid( this.getTransformedBlocks(-1, 2, 1) )) {
-                this.tetromino.move(-1, 2);
-                this.tetromino.rotate(1);
-                this.tickers.land.reset();
+            else if (this.tetromino.type != Tetromino.Types.O) {
+                if (this.tetromino.type == Tetromino.Types.I) {
+                    switch (this.tetromino.rotation) {
+                        case Tetromino.Rotations.DEFAULT:
+                            wallKickTests = WallKicks.I.DEFAULT_TO_RIGHT; break;
+                        case Tetromino.Rotations.RIGHT:
+                            wallKickTests = WallKicks.I.RIGHT_TO_DOWN; break;
+                        case Tetromino.Rotations.DOWN:
+                            wallKickTests = WallKicks.I.DOWN_TO_LEFT; break;
+                        case Tetromino.Rotations.LEFT:
+                            wallKickTests = WallKicks.I.LEFT_TO_DEFAULT; break;
+                    }
+                }
+                else {
+                    switch (this.tetromino.rotation) {
+                        case Tetromino.Rotations.DEFAULT:
+                            wallKickTests = WallKicks.Other.DEFAULT_TO_RIGHT; break;
+                        case Tetromino.Rotations.RIGHT:
+                            wallKickTests = WallKicks.Other.RIGHT_TO_DOWN; break;
+                        case Tetromino.Rotations.DOWN:
+                            wallKickTests = WallKicks.Other.DOWN_TO_LEFT; break;
+                        case Tetromino.Rotations.LEFT:
+                            wallKickTests = WallKicks.Other.LEFT_TO_DEFAULT; break;
+                    }
+                }
+                    
+                for (i = 0; i < wallKickTests.length; i++) {
+                    test = wallKickTests[i];
+                    
+                    if (this.isLocationValid( this.getTransformedBlocks(test[0], test[1], 1) )) {
+                        this.tetromino.move(test[0], test[1]);
+                        this.tetromino.rotate(Tetromino.Rotations.CLOCKWISE);
+                        this.tickers.land.reset();
+                        break;
+                    }
+                }
             }
         }
     
+        // Counter Clockwise
         if ((this.isKeyPressed("z") && !this.wasKeyPressed("z")) ||
         (this.isKeyPressed("Z") &&  !this.wasKeyPressed("Z"))) {
             if (this.isLocationValid( this.getTransformedBlocks(0, 0, -1) )) {
-                this.tetromino.rotate(-1);
+                this.tetromino.rotate(Tetromino.Rotations.COUNTER_CLOCKWISE);
                 this.tickers.land.reset();
             }
-            else if (this.isLocationValid( this.getTransformedBlocks(1, 0, -1) )) {
-                this.tetromino.move(1, 0);
-                this.tetromino.rotate(-1);
-                this.tickers.land.reset();
-            }
-            else if (this.isLocationValid( this.getTransformedBlocks(-1, 0, -1) )) {
-                this.tetromino.move(-1, 0);
-                this.tetromino.rotate(-1);
-                this.tickers.land.reset();
-            }
-            else if (this.isLocationValid( this.getTransformedBlocks(1, 1, -1) )) {
-                this.tetromino.move(1, 1);
-                this.tetromino.rotate(-1);
-                this.tickers.land.reset();
-            }
-            else if (this.isLocationValid( this.getTransformedBlocks(-1, 1, -1) )) {
-                this.tetromino.rotate(-1);
-                this.tetromino.move(-1, 1);
-                this.tickers.land.reset();
-            }
-            else if (this.isLocationValid( this.getTransformedBlocks(1, 2, -1) )) {
-                this.tetromino.move(1, 2);
-                this.tetromino.rotate(-1);
-                this.tickers.land.reset();
-            }
-            else if (this.isLocationValid( this.getTransformedBlocks(-1, 2, -1) )) {
-                this.tetromino.move(-1, 2);
-                this.tetromino.rotate(-1);
-                this.tickers.land.reset();
+            else if (this.tetromino.type != Tetromino.Types.O) {
+                if (this.tetromino.type == Tetromino.Types.I) {
+                    switch (this.tetromino.rotation) {
+                        case Tetromino.Rotations.DEFAULT:
+                            wallKickTests = WallKicks.I.DEFAULT_TO_LEFT; break;
+                        case Tetromino.Rotations.LEFT:
+                            wallKickTests = WallKicks.I.LEFT_TO_DOWN; break;
+                        case Tetromino.Rotations.DOWN:
+                            wallKickTests = WallKicks.I.DOWN_TO_RIGHT; break;
+                        case Tetromino.Rotations.RIGHT:
+                            wallKickTests = WallKicks.I.RIGHT_TO_DEFAULT; break;
+                    }
+                }
+                else {
+                    switch (this.tetromino.rotation) {
+                        case Tetromino.Rotations.DEFAULT:
+                            wallKickTests = WallKicks.Other.DEFAULT_TO_LEFT; break;
+                        case Tetromino.Rotations.LEFT:
+                            wallKickTests = WallKicks.Other.LEFT_TO_DOWN; break;
+                        case Tetromino.Rotations.DOWN:
+                            wallKickTests = WallKicks.Other.DOWN_TO_RIGHT; break;
+                        case Tetromino.Rotations.RIGHT:
+                            wallKickTests = WallKicks.Other.RIGHT_TO_DEFAULT; break;
+                    }
+                }
+                    
+                for (i = 0; i < wallKickTests.length; i++) {
+                    test = wallKickTests[i];
+                    
+                    if (this.isLocationValid( this.getTransformedBlocks(test[0], test[1], -1) )) {
+                        this.tetromino.move(test[0], test[1]);
+                        this.tetromino.rotate(Tetromino.Rotations.COUNTER_CLOCKWISE);
+                        this.tickers.land.reset();
+                        break;
+                    }
+                }
             }
         }
         
         if (this.isKeyPressed("ArrowDown") && this.tickers.goDown.isDone()) {
-            if (this.isLocationValid( this.getTransformedBlocks(0, 1, 0) )) {
-                this.tetromino.move(0, 1);
-                this.tickers.goDown.reset();
-                this.tickers.autoGoDown.reset();
-            }
+            this.attemptSoftDrop();
         }
 
         this.updatePreviousKeys();
@@ -316,14 +362,64 @@ function Renderer(game) {
     
     
     this.render = function () {
+        var width = this.game.grid.cols * this.game.grid.blockSize;
+        var height = this.game.grid.rows * this.game.grid.blockSize;
+        
+        var offset = {
+            x: (this.canvas.width / 2) - (width / 2),
+            y: 0,
+        };
+        
         this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
         
-        this.drawGrid();
-        this.drawTetromino();
-        this.drawGhostTetromino();
+        this.context.fillStyle = "#FAFAFA";
+        this.context.fillRect(0, 0, this.canvas.width, this.canvas.height);
+        
+        this.context.textAlign = "left";
+        this.context.font = "15px sans-serif";
+        this.context.fillStyle = "#000";
+        this.context.fillText("HOLD", 44, 50);
+        this.context.strokeStyle = "#CCC";
+        this.context.strokeRect(25, 25, 80, 110);
+        
+        if (this.game.heldTetrominoType) {
+            this.drawBlocks(this.game.heldTetrominoType, 0, 35, 80, 0.6);
+        }
+        
+        
+        this.context.textAlign = "left";
+        this.context.font = "15px sans-serif";
+        this.context.fillStyle = "#000";
+        this.context.fillText("LINES", 44, 180);
+        this.context.strokeStyle = "#CCC";
+        this.context.strokeRect(25, 155, 80, 80);
+        
+        this.context.fillStyle = "#000";
+        this.context.font = "18px sans-serif";
+        this.context.textAlign = "center";
+        this.context.fillText(this.game.totalLinesCleared, 65, 212);
+        
+        
+        this.context.textAlign = "left";
+        this.context.font = "15px sans-serif";
+        this.context.fillStyle = "#000";
+        this.context.fillText("NEXT", 420, 50);
+        this.context.strokeStyle = "#CCC";
+        this.context.strokeRect(400, 25, 80, 280);
+        
+        var nextThreeTypes = this.game.queue.getNextThree();
+        for (var i = 0; i < nextThreeTypes.length; i++) {
+            this.drawBlocks(nextThreeTypes[i], 0, 410, 90 + (i * 80), 0.6);
+        }
+        
+        
+        this.drawGrid(offset);
+        this.drawTetromino(offset);
+        this.drawGhostTetromino(offset);
     };
     
-    this.drawGrid = function () {
+    this.drawGrid = function (offset) {
+        
         this.context.save();
         this.context.strokeStyle = "#CCC";
     
@@ -332,8 +428,8 @@ function Renderer(game) {
                 var block = this.game.grid.getBlock(x, y);
                 
                 this.context.beginPath();
-                this.context.rect(x * this.game.blockSize,
-                    y * this.game.blockSize,
+                this.context.rect(offset.x + x * this.game.blockSize,
+                    offset.y + y * this.game.blockSize,
                     this.game.blockSize, this.game.blockSize);
                 this.context.closePath();
                 this.context.stroke();
@@ -348,7 +444,26 @@ function Renderer(game) {
         this.context.restore();
     };
     
-    this.drawTetromino = function () {
+    this.drawBlocks = function (tetrominoType, rotation, x, y, scale) {
+        var properties = Tetromino.Properties[tetrominoType];
+        var blocks = properties.blocks[rotation];
+        var color = properties.color;
+        var size = this.game.grid.blockSize * (scale || 1);
+        
+        this.context.save();
+            
+        for (var i = 0; i < blocks.length; i++) {
+            var block = blocks[i];
+            
+            this.context.fillStyle = color;
+            this.context.fillRect(x + block[0] * size,
+                y + block[1] * size, size, size);
+        }
+        
+        this.context.restore();
+    };
+    
+    this.drawTetromino = function (offset) {
         var properties = Tetromino.Properties[this.game.tetromino.type];
         var blocks = properties.blocks[this.game.tetromino.rotation];
         
@@ -360,8 +475,8 @@ function Renderer(game) {
             var block = blocks[i];
             
             this.context.beginPath();
-            this.context.rect((this.game.tetromino.x + block[0]) * this.game.grid.blockSize,
-                (this.game.tetromino.y + block[1]) * this.game.grid.blockSize,
+            this.context.rect(offset.x + (this.game.tetromino.x + block[0]) * this.game.grid.blockSize,
+                offset.y + (this.game.tetromino.y + block[1]) * this.game.grid.blockSize,
                 this.game.grid.blockSize, this.game.grid.blockSize);
             this.context.closePath();
             this.context.fill();
@@ -371,7 +486,7 @@ function Renderer(game) {
         this.context.restore();
     };
     
-    this.drawGhostTetromino = function () {
+    this.drawGhostTetromino = function (offset) {
         var blocks = this.game.getTransformedBlocks(0, this.game.getPredictedLandingY(), 0);
         
         this.context.save();
@@ -379,8 +494,8 @@ function Renderer(game) {
         for (var i = 0; i < blocks.length; i++) {
             var block = blocks[i];
 
-            this.context.rect(block[0] * this.game.grid.blockSize,
-                block[1] * this.game.grid.blockSize,
+            this.context.rect(offset.x + block[0] * this.game.grid.blockSize,
+                offset.y + block[1] * this.game.grid.blockSize,
                 this.game.grid.blockSize, this.game.grid.blockSize);
         }
         this.context.fillStyle = "rgba(0, 0, 0, 0.4)";
@@ -450,7 +565,7 @@ function Grid() {
 function Queue() {
     this.queue = [];
     
-    this.generateNextQueue = function () {
+    this.generateNextSet = function () {
         var types = Tetromino.getAllTypes();
 
         while (types.length > 0) {
@@ -461,12 +576,19 @@ function Queue() {
         }
     };
     
+    this.getNextThree = function () {
+        if (this.queue.length <= 2)
+            this.generateNextSet();
+        
+        return [ this.queue[0], this.queue[1], this.queue[2] ];
+    };
+    
     this.getNextTetrominoType = function () {
         if (this.queue.length == 0) {
-            this.generateNextQueue();
+            this.generateNextSet();
         }
 
-        return this.queue.splice(this.queue.length - 1, 1)[0];
+        return this.queue.splice(0, 1)[0];
     };
 }
 
@@ -497,7 +619,7 @@ function Tetromino(type) {
     };
     
     this.type = type;
-    this.x = 4;
+    this.x = 3;
     this.y = 0;
     this.rotation = 0;
     
@@ -536,6 +658,15 @@ Tetromino.Types = {
     J: "J",
     S: "S",
     Z: "Z"
+};
+Tetromino.Rotations = {
+    DEFAULT: 0,
+    RIGHT: 1,
+    DOWN: 2,
+    LEFT: 3,
+    
+    CLOCKWISE: 1,
+    COUNTER_CLOCKWISE: -1,
 };
 Tetromino.Properties = {
     Z: {
@@ -586,10 +717,10 @@ Tetromino.Properties = {
     O: {
         color: "gold",
         blocks: [
-            [[0, 0], [1, 0], [0, 1], [1, 1]],
-            [[0, 0], [1, 0], [0, 1], [1, 1]],
-            [[0, 0], [1, 0], [0, 1], [1, 1]],
-            [[0, 0], [1, 0], [0, 1], [1, 1]],
+            [[1, 0], [2, 0], [1, 1], [2, 1]],
+            [[1, 0], [2, 0], [1, 1], [2, 1]],
+            [[1, 0], [2, 0], [1, 1], [2, 1]],
+            [[1, 0], [2, 0], [1, 1], [2, 1]],
         ],
     },
     I: {
@@ -602,6 +733,29 @@ Tetromino.Properties = {
         ],
     }
 
+};
+
+var WallKicks = {
+    I: {
+        DEFAULT_TO_RIGHT: [ [-2, 0], [1, 0], [-2, 1], [1, -2] ],
+        RIGHT_TO_DEFAULT: [ [2, 0], [-1, 0], [2, -1], [-1, 2] ],
+        RIGHT_TO_DOWN: [ [-1, 0], [2, 0], [-1, -2], [2, 1] ],
+        DOWN_TO_RIGHT: [ [1, 0], [-2, 0], [1, 2], [-2, -1] ],
+        DOWN_TO_LEFT: [ [2, 0], [-1, 0], [2, -1], [-1, 2] ],
+        LEFT_TO_DOWN: [ [-2, 0], [1, 0], [-2, 1], [1, -2] ],
+        LEFT_TO_DEFAULT: [ [1, 0], [-2, 0], [1, 2], [-2, -1] ],
+        DEFAULT_TO_LEFT: [ [-1, 0], [2, 0], [-1, -2], [2, 1] ],
+    },
+    Other: {
+        DEFAULT_TO_RIGHT: [ [-1, 0], [-1, -1], [0, 2], [-1, 2] ],
+        RIGHT_TO_DEFAULT: [ [1, 0], [1, 1], [0, -2], [1, -2] ],
+        RIGHT_TO_DOWN: [ [1, 0], [1, 1], [0, -2], [1, -2] ],
+        DOWN_TO_RIGHT: [ [-1, 0], [-1, -1], [0, 2], [-1, 2] ],
+        DOWN_TO_LEFT: [ [1, 0], [1, -1], [0, 2], [1, 2] ],
+        LEFT_TO_DOWN: [ [-1, 0], [-1, 1], [0, -2], [1, -2] ],
+        LEFT_TO_DEFAULT: [ [-1, 0], [-1, 1], [0, -2], [-1, -2] ],
+        DEFAULT_TO_LEFT: [ [1, 0], [1, -1], [0, 2], [1, 2] ],
+    }
 };
 
 
