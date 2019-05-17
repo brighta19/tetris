@@ -1,22 +1,29 @@
 function Queue() {
     this.queue = [];
+    
+    this.generateNextSet = function () {
+        var types = Tetromino.getAllTypes();
 
-    this.generateSetOfBlocks = function () {
-        var blocks = Tetromino.getTetrominoes();
-
-        while (blocks.length > 0) {
-            var randomIndex = Math.floor(Math.random() * blocks.length);
+        while (types.length > 0) {
+            var randomIndex = Math.floor(Math.random() * types.length);
             
-            this.queue.push(blocks[randomIndex]);
-            blocks.splice(randomIndex, 1);
+            this.queue.push(types[randomIndex]);
+            types.splice(randomIndex, 1);
         }
     };
-
-    this.getNextBlock = function () {
+    
+    this.getNextThree = function () {
+        if (this.queue.length <= 2)
+            this.generateNextSet();
+        
+        return [ this.queue[0], this.queue[1], this.queue[2] ];
+    };
+    
+    this.getNextTetrominoType = function () {
         if (this.queue.length == 0) {
-            this.generateSetOfBlocks();
+            this.generateNextSet();
         }
 
-        return this.queue.splice(this.queue.length - 1, 1)[0];
+        return this.queue.splice(0, 1)[0];
     };
 }
