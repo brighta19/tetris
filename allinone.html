@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Tetris</title>
+        <style>
+            body {
+                margin: 0;
+                background: #FAA;
+            }
+            #title {
+                color: #FFF;
+                text-align: center;
+                font: 3em sans-serif;
+                font-weight: bold;
+                font-variant: small-caps;
+                text-decoration: underline;
+                text-shadow: 0 0 5px #FA0;
+            }
+            #cvs {
+                display: block;
+                margin: 0 auto;
+                background: #FFF;
+                box-shadow: 0 0 5px #FA0;
+            }
+        </style>
+    </head>
+    <body>
+        <h1 id="title" style="text-align:center;">Tetris</h1>
+        <canvas id="cvs" width="300px" height="500px"></canvas>
+        <script>
+        function Timer(duration) {
+            this.duration = duration;
+            
+            this.isDone = function () {
+                return this.startTime == undefined || (Date.now() - this.startTime) >= duration;
+            };
+            
+            this.reset = function () {
+                this.startTime = Date.now();
+            };
+        }
+        
+        function Ticker(maxTicks) {
+            this.maxTicks = maxTicks;
+            
+            this.isDone = function () {
+                return this.ticks == undefined || this.ticks >= this.maxTicks;
+            };
+            
+            this.tick = function () {
+                this.ticks++;
+            };
+            
+            this.reset = function () {
+                this.ticks = 0;
+            };
+        }
+        
+        function Grid() {
+            this.rows = 20;
+            this.cols = 10;
+            
+            this.init = function (blockSize) {
+                this.grid = [];
+                this.blockSize = blockSize;
+                
+                for (var y = 0; y < this.rows; y++) {
+                    this.grid[y] = [];
+                    for (var x = 0; x < this.cols; x++) {
+                        this.grid[y][x] = 0;
+                    }
+                }
+                
+                this.width = this.cols * this.blockSize;
+                this.height = this.rows * this.blockSize;
+            };
+            
+            this.tryClearingLines = function () {
+                var i = this.grid.length - 1;
+                while (i >= 0) {
+                    if (this.grid[i].indexOf(0) < 0) {
+                        this.grid.splice(i, 1);
+                        
+                        this.grid.unshift([]);
+                        for (var x = 0; x < this.cols; x++) {
+                            this.grid[0][x] = 0;
+                        }
+                    }
+                    else {
+                        i--;
+                    }
+                }
+            };
+            
+            this.setBlock = function (x, y, color) {
+                this.grid[y][x] = color;
+            };
+            
+            this.getBlock = function (x, y) {
+                return this.grid[y][x];
+            };
+        }
+        
+        function Queue() {
+            this.queue = [];
+        
+            this.generateSetOfBlocks = function () {
+                var blocks = Tetromino.getTetrominoes();
+        
+                while (blocks.length > 0) {
+                    var randomIndex = Math.floor(Math.random() * blocks.length);
+                    
+                    this.queue.push(blocks[randomIndex]);
+                    blocks.splice(randomIndex, 1);
+                }
+            };
+        
+            this.getNextBlock = function () {
+                if (this.queue.length == 0) {
+                    this.generateSetOfBlocks();
+                }
+        
+                return this.queue.splice(this.queue.length - 1, 1)[0];
+            };
+        }
+        
+        function Tetromino(tetrimino) {
+            this.color = tetrimino.color;
+            this.rotation = 0;
+            this.blocks = tetrimino.blocks;
+            this.x = 4;
+            this.y = 0;
+            
+            this.translateBlocks = function (x, y) {
+                this.x += x;
+                this.y += y;
+            };
+            
+            this.rotateBlocks = function (rot) {
+                var rotation = this.rotation + rot;
+                
+                if (rotation > this.blocks.length - 1)
+                    rotation = 0;
+                if (rotation < 0)
+                    rotation = this.blocks.length - 1;
+                    
+                this.rotation = rotation;
+            };
+            
+            this.getTranslatedBlocks = function (x, y, rot) {
+                var rotation = this.rotation,
+                    blocks = [];
+                
+                if (rot != undefined)
+                    rotation += rot;
+                
+                if (rotation > this.blocks.length - 1)
+                    rotation = 0;
+                if (rotation < 0)
+                    rotation = this.blocks.length - 1;
+                
+                for (var i = 0; i < this.blocks[rotation].length; i++) {
+                    var block = this.blocks[rotation][i];
+                    blocks[i] = {
+                        x: block[0] + this.x + x,
+                        y: block[1] + this.y + y,
+                    };
+                }
+                
+                return blocks;
+            };
+            
+            this.getRotatedBlocks = function (rot) {
+                return this.getTranslatedBlocks(0, 0, rot);
+            };
+            
+            this.getBlocks = function () {
+                return this.getTranslatedBlocks(0, 0);
+            };
+        }
+        
+        Tetromino.Z = {
+            color: "red",
+            blocks: [
+                [[0, 0], [1, 0], [1, 1], [2, 1]],
+                [[2, 0], [2, 1], [1, 1], [1, 2]],
+                [[0, 1], [1, 1], [1, 2], [2, 2]],
+                [[1, 0], [1, 1], [0, 1], [0, 2]],
+            ],
+        };
+        Tetromino.S = {
+            color: "lime",
+            blocks: [
+                [[0, 1], [1, 1], [1, 0], [2, 0]],
+                [[1, 0], [1, 1], [2, 1], [2, 2]],
+                [[0, 2], [1, 2], [1, 1], [2, 1]],
+                [[0, 0], [0, 1], [1, 1], [1, 2]],
+            ],
+        };
+        Tetromino.T = {
+            color: "purple",
+            blocks: [
+                [[0, 1], [1, 0], [2, 1], [1, 1]],
+                [[1, 0], [2, 1], [1, 2], [1, 1]],
+                [[2, 1], [1, 2], [0, 1], [1, 1]],
+                [[1, 2], [0, 1], [1, 0], [1, 1]],
+            ],
+        };
+        Tetromino.L = {
+            color: "orange",
+            blocks: [
+                [[0, 1], [1, 1], [2, 1], [2, 0]],
+                [[1, 0], [1, 1], [1, 2], [2, 2]],
+                [[0, 2], [0, 1], [1, 1], [2, 1]],
+                [[0, 0], [1, 0], [1, 1], [1, 2]],
+            ],
+        };
+        Tetromino.J = {
+            color: "darkblue",
+            blocks: [
+                [[0, 0], [0, 1], [1, 1], [2, 1]],
+                [[2, 0], [1, 0], [1, 1], [1, 2]],
+                [[0, 1], [1, 1], [2, 1], [2, 2]],
+                [[1, 0], [1, 1], [1, 2], [0, 2]],
+            ],
+        };
+        Tetromino.O = {
+            color: "gold",
+            blocks: [
+                [[0, 0], [1, 0], [0, 1], [1, 1]]
+            ],
+        };
+        Tetromino.I = {
+            color: "dodgerblue",
+            blocks: [
+                [[0, 1], [1, 1], [2, 1], [3, 1]],
+                [[2, 0], [2, 1], [2, 2], [2, 3]],
+                [[0, 2], [1, 2], [2, 2], [3, 2]],
+                [[1, 0], [1, 1], [1, 2], [1, 3]],
+            ],
+        };
+        
+        Tetromino.getTetrominoes = function () {
+            return [
+                Tetromino.I,
+                Tetromino.J,
+                Tetromino.L,
+                Tetromino.O,
+                Tetromino.S,
+                Tetromino.T,
+                Tetromino.Z,
+            ];
+        };
+        
+        var canvas = document.getElementById("cvs");
+        var ctx = canvas.getContext('2d');
+        var prevKeys = [];
+        var keys = [];
+        
+        var updatesPerSecond = 20;
+        var BLOCK_SIZE = 24;
+        var shape = undefined;
+        var grid = new Grid();
+        var queue = new Queue();
+        
+        var tickers = {
+            land: new Ticker(updatesPerSecond * 0.8),
+            forceLand: new Ticker(updatesPerSecond * 2),
+        };
+        var timers = {
+            initialMove: new Timer(200),
+            move: new Timer(40),
+            autoGoDown: new Timer(1000),
+        };
+        
+        function update() {
+            var initMoveTimerDone = timers.initialMove.isDone(),
+                moveTimerDone = timers.move.isDone(),
+                blocks;
+            
+            if (isKeyPressed("ArrowUp") && !wasKeyPressed("ArrowUp")) {
+                blocks = shape.getRotatedBlocks(1);
+                if (isLocationValid(blocks)) {
+                    shape.rotateBlocks(1);
+                }
+            }
+            
+            if ((isKeyPressed("z") && !wasKeyPressed("z")) ||
+            isKeyPressed("Z") &&  !wasKeyPressed("Z")) {
+                blocks = shape.getRotatedBlocks(-1);
+                if (isLocationValid(blocks)) {
+                    shape.rotateBlocks(-1);
+                }
+            }
+            
+            if (isKeyPressed("ArrowLeft") && initMoveTimerDone && moveTimerDone) {
+                blocks = shape.getTranslatedBlocks(-1, 0);
+                if (isLocationValid(blocks)) {
+                    shape.translateBlocks(-1, 0);
+                    timers.move.reset();
+                    tickers.land.reset();
+                }
+            }
+            
+            if (isKeyPressed("ArrowRight") && initMoveTimerDone && moveTimerDone) {
+                blocks = shape.getTranslatedBlocks(1, 0);
+                if (isLocationValid(blocks)) {
+                    shape.translateBlocks(1, 0);
+                    timers.move.reset();
+                    tickers.land.reset();
+                }
+            }
+            
+            if (isKeyPressed((" ")) && !wasKeyPressed(" ")) {
+                blocks = shape.getTranslatedBlocks(0, 1);
+                
+                while (isLocationValid(blocks)) {
+                    shape.translateBlocks(0, 1);
+                    blocks = shape.getTranslatedBlocks(0, 1);
+                }
+                
+                landShape();
+                grid.tryClearingLines();
+                setShape();
+                timers.autoGoDown.reset();
+            }
+            
+            if (isKeyPressed("ArrowDown")) {
+                blocks = shape.getTranslatedBlocks(0, 1);
+                if (isLocationValid(blocks)) {
+                    shape.translateBlocks(0, 1);
+                    timers.autoGoDown.reset();
+                }
+            }
+            
+            blocks = shape.getTranslatedBlocks(0, 1);
+            if (isLocationValid(blocks)) {
+                if (timers.autoGoDown.isDone()) {
+                    shape.translateBlocks(0, 1);
+                    timers.autoGoDown.reset();
+                }
+            }
+            else {
+                console.log("strange");
+                tickers.land.tick();
+                tickers.forceLand.tick();
+            }
+            
+            if (tickers.land.isDone() || tickers.forceLand.isDone()) {
+                landShape();
+                grid.tryClearingLines();
+                setShape();
+                timers.autoGoDown.reset();
+            }
+            
+            
+            // Update previous Keys
+            prevKeys = [];
+            for (var i = 0; i < keys.length; i++)
+                prevKeys[i] = keys[i];
+        }
+        
+        function landShape() {
+            var blocks = shape.getBlocks(),
+                i, block;
+                
+            for (i = 0; i < blocks.length; i++) {
+                block = blocks[i];
+                grid.setBlock(block.x, block.y, shape.color);
+            }
+        }
+        
+        function isLocationValid(blocks) {
+            var i, block;
+            
+            for (i = 0; i < blocks.length; i++) {
+                block = blocks[i];
+                
+                if (block.x < 0 ||
+                block.x > grid.cols - 1 ||
+                block.y > grid.rows - 1 ||
+                grid.getBlock(block.x, block.y) != 0) {
+                    return false;
+                }
+            }
+            
+            return true;
+        }
+        
+        function setShape() {
+            var block = queue.getNextBlock();
+            shape = new Tetromino(block);
+            
+            tickers.land.reset();
+            tickers.forceLand.reset();
+        }
+        
+        function getGhostBlock() {
+            var yTranslation = 1;
+            var blocks = shape.getTranslatedBlocks(0, 0);
+            var nextBlocks = shape.getTranslatedBlocks(0, yTranslation);
+            
+            while (isLocationValid(nextBlocks)) {
+                blocks = shape.getTranslatedBlocks(0, yTranslation);
+                yTranslation++;
+                nextBlocks = shape.getTranslatedBlocks(0, yTranslation);
+            }
+            return blocks;
+        }
+        
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            var offsetX = (canvas.width / 2) - (grid.width / 2);
+            var offsetY = (canvas.height / 2) - (grid.height / 2);
+            
+            drawGrid(offsetX, offsetY);
+            drawShape(offsetX, offsetY);
+            drawGhostBlock(offsetX, offsetY);
+        }
+        
+        function drawGrid(offsetX, offsetY) {
+            ctx.save();
+            ctx.strokeStyle = "gray";
+        
+            for (var y = 0; y < grid.rows; y++) {
+                for (var x = 0; x < grid.cols; x++) {
+                    var block = grid.getBlock(x, y);
+                    
+                    ctx.beginPath();
+                    ctx.rect(offsetX + x * grid.blockSize,
+                        offsetY + y * grid.blockSize,
+                        grid.blockSize, grid.blockSize);
+                    ctx.closePath();
+                    ctx.stroke();
+                    
+                    if (block != 0) {
+                        ctx.fillStyle = block;
+                        ctx.fill();
+                    }
+                }
+            }
+        
+            ctx.restore();
+        }
+        
+        function drawShape(offsetX, offsetY) {
+            var blocks = shape.getBlocks();
+            
+            ctx.save();
+            ctx.fillStyle = shape.color;
+            ctx.strokeStyle = "white";
+            for (var i = 0; i < blocks.length; i++) {
+                var block = blocks[i];
+                
+                ctx.beginPath();
+                ctx.rect(offsetX + block.x * grid.blockSize,
+                    offsetY + block.y * grid.blockSize,
+                    grid.blockSize, grid.blockSize);
+                ctx.closePath();
+                ctx.fill();
+                ctx.stroke();
+            }
+            ctx.restore();
+        }
+        
+        function drawGhostBlock(offsetX, offsetY) {
+            var blocks = getGhostBlock();
+            
+            ctx.save();
+            ctx.beginPath();
+            for (var i = 0; i < blocks.length; i++) {
+                ctx.rect(offsetX + blocks[i].x * grid.blockSize,
+                    offsetY + blocks[i].y * grid.blockSize,
+                    grid.blockSize, grid.blockSize);
+            }
+            ctx.fillStyle = "rgba(0, 0, 0, 0.4)";
+            ctx.fill();
+            ctx.restore();
+        }
+        
+        function onKeyPress() {
+            var blocks;
+            
+            if (isKeyPressed("ArrowLeft") && !wasKeyPressed("ArrowLeft")) {
+                blocks = shape.getTranslatedBlocks(-1, 0);
+                if (isLocationValid(blocks)) {
+                    shape.translateBlocks(-1, 0);
+                    timers.initialMove.reset();
+                    tickers.land.reset();
+                }
+            }
+            
+            if (isKeyPressed("ArrowRight") && !wasKeyPressed("ArrowRight")) {
+                blocks = shape.getTranslatedBlocks(1, 0);
+                if (isLocationValid(blocks)) {
+                    shape.translateBlocks(1, 0);
+                    timers.initialMove.reset();
+                    tickers.land.reset();
+                }
+            }
+        }
+        
+        function isKeyPressed(key) {
+            return keys.indexOf(key) >= 0;
+        }
+        
+        function wasKeyPressed(key) {
+            return prevKeys.indexOf(key) >= 0;
+        }
+        
+        function start() {
+            grid.init(BLOCK_SIZE);
+            setShape();
+            
+            setInterval(function () {
+                update();
+                draw();
+            }, 1000 / updatesPerSecond);
+        }
+        
+        addEventListener('keydown', function (e) {
+            if (keys.indexOf(e.key) < 0) {
+                keys.push(e.key);
+                onKeyPress();
+            }
+        });
+        
+        addEventListener('keyup', function (e) {
+            var index = keys.indexOf(e.key);
+            if (index >= 0)
+                keys.splice(index, 1);
+        });
+        
+        start();
+
+
+        </script>
+    </body>
+</html>
