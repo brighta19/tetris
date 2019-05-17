@@ -16,8 +16,10 @@ function Game(canvas) {
     this.recentWallKick = null;
     this.hasSwitchedTetromino = false;
     this.totalLinesCleared = 0;
+    this.backToBack = false;
+    this.comboBonus = -1;
+    this.level = 1;
     this.score = 0;
-    this.backToBackBonus = false;
     
     this.tickers = {
         initialMove: new Ticker(this.updatesPerSecond * 0.2),
@@ -149,24 +151,28 @@ function Game(canvas) {
             // Regular T Spin
             if (this.grid.linesCleared.length == 0) {
                 this.score += 400;
+                this.comboBonus = -1;
                 console.log("T Spin");
             }
             // T Spin Single
             else if (this.grid.linesCleared.length == 1) {
-                this.score += 800 * (this.backToBackBonus ? 1.5 : 1);
-                this.backToBackBonus = true;
+                this.comboBonus++;
+                this.score += 800 * (this.backToBack ? 1.5 : 1) + (this.comboBonus * 50);
+                this.backToBack = true;
                 console.log("T Spin Single");
             }
             // T Spin Double
             else if (this.grid.linesCleared.length == 2) {
-                this.score += 1200 * (this.backToBackBonus ? 1.5 : 1);
-                this.backToBackBonus = true;
+                this.comboBonus++;
+                this.score += 1200 * (this.backToBack ? 1.5 : 1) + (this.comboBonus * 50);
+                this.backToBack = true;
                 console.log("T Spin Double");
             }
             // T Spin Triple
             else if (this.grid.linesCleared.length == 3) {
-                this.score += 1600 * (this.backToBackBonus ? 1.5 : 1);
-                this.backToBackBonus = true;
+                this.comboBonus++;
+                this.score += 1600 * (this.backToBack ? 1.5 : 1) + (this.comboBonus * 50);
+                this.backToBack = true;
                 console.log("T Spin Triple");
             }
         }
@@ -177,28 +183,35 @@ function Game(canvas) {
                 console.log("T Spin Mini");
             }
             
+            if (this.grid.linesCleared.length == 0) {
+                this.comboBonus = -1;
+            }
             // Single Line Clear
-            if (this.grid.linesCleared.length == 1) {
-                this.score += 100;
-                this.backToBackBonus = false;
+            else if (this.grid.linesCleared.length == 1) {
+                this.comboBonus++;
+                this.score += 100 + (this.comboBonus * 50);
+                this.backToBack = false;
                 console.log("Single");
             }
             // Double Line Clear
             else if (this.grid.linesCleared.length == 2) {
-                this.score += 300;
-                this.backToBackBonus = false;
+                this.comboBonus++;
+                this.score += 300 + (this.comboBonus * 50);
+                this.backToBack = false;
                 console.log("Double");
             }
             // Triple Line Clear
             else if (this.grid.linesCleared.length == 3) {
-                this.score += 500;
-                this.backToBackBonus = false;
+                this.comboBonus++;
+                this.score += 500 + (this.comboBonus * 50);
+                this.backToBack = false;
                 console.log("Triple");
             }
             // Tetris
             else if (this.grid.linesCleared.length == 4) {
-                this.score += 800 * (this.backToBackBonus ? 1.5 : 1);
-                this.backToBackBonus = true;
+                this.comboBonus++;
+                this.score += 800 * (this.backToBack ? 1.5 : 1) + (this.comboBonus * 50);
+                this.backToBack = true;
                 console.log("Tetris");
             }
         }

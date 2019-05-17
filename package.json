@@ -1,0 +1,22 @@
+{
+  "name": "tetris",
+  "version": "1.0.0",
+  "description": "Tetris",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/BrightA19/tetris.git"
+  },
+  "author": "Bright A. <bright.a19@bronxsoftware.org>",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/BrightA19/tetris/issues"
+  },
+  "homepage": "https://github.com/BrightA19/tetris#readme",
+  "dependencies": {
+    "express": "^4.17.0"
+  }
+}
