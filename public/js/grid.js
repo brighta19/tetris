@@ -1,50 +1,49 @@
 function Grid() {
-    this.EMPTY_BLOCK = 0;
+    const EMPTY_BLOCK = 0;
 
-    this.rows = 20;
-    this.cols = 10;
+    this.numOfRows = 20;
+    this.numOfCols = 10;
     this.grid = [];
-    this.blockSize = 25;
-    this.linesCleared = [];
+    this.numOfRowsCleared = 0;
     
     
-    for (var y = 0; y < this.rows; y++) {
+    for (var y = 0; y < this.numOfRows; y++) {
         this.grid[y] = [];
-        for (var x = 0; x < this.cols; x++) {
-            this.grid[y][x] = this.EMPTY_BLOCK;
+        for (var x = 0; x < this.numOfCols; x++) {
+            this.grid[y][x] = EMPTY_BLOCK;
         }
     }
     
 
-    this.tryClearingLines = function () {
-        var i = this.grid.length - 1;
-        this.linesCleared = [];
+    this.attemptToClearRow = function () {
+        var y = this.grid.length - 1;
+        this.numOfRowsCleared = 0;
         
-        while (i >= 0) {
-            if (this.isLineFull(i)) {
-                this.grid.splice(i, 1);
-                
+        while (y >= 0) {
+            if (this.isRowComplete(y)) {
+                this.numOfRowsCleared++;
+                this.grid.splice(y, 1);
                 this.grid.unshift([]);
-                for (var x = 0; x < this.cols; x++) {
-                    this.grid[0][x] = this.EMPTY_BLOCK;
+
+                for (var x = 0; x < this.numOfCols; x++) {
+                    this.grid[0][x] = EMPTY_BLOCK;
                 }
                 
-                this.linesCleared.push(i);
             }
             else {
-                i--;
+                y--;
             }
         }
     };
     
     this.isEmpty = function (x, y) {
-        return (y >= 0 && y < this.rows) &&
-            (x >= 0 && x < this.cols) &&
-            this.grid[y][x] == this.EMPTY_BLOCK;
+        return (y >= 0 && y < this.numOfRows) &&
+            (x >= 0 && x < this.numOfCols) &&
+            this.grid[y][x] == EMPTY_BLOCK;
     };
     
-    this.isLineFull = function (y) {
-        return this.grid[y].indexOf(this.EMPTY_BLOCK) < 0;
+    this.isRowComplete = function (y) {
+        return this.grid[y].indexOf(EMPTY_BLOCK) < 0;
     };
     
     this.setBlock = function (x, y, color) {

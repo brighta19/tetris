@@ -34,27 +34,21 @@ var TSpins = {
 
 
 var canvas = document.getElementById("cvs");
+var game = new Game(canvas);
 
-try {
-    var game = new Game(document.getElementById("cvs"));
-    
-    window.addEventListener('keydown', function (event) {
-        if (game.keysPressed.indexOf(event.key) < 0) {
-            game.keysPressed.push(event.key);
-            game.onKeyPress();
-        }
-    });
-    window.addEventListener('keyup', function (event) {
-        var index = game.keysPressed.indexOf(event.key);
-        if (index >= 0) {
-            game.keysPressed.splice(index, 1);
-        }
-    });
-    
-    game.start();
-}
-catch (err) {
-    canvas.getContext("2d").fillText(err, 10, 10);
-}
+window.addEventListener('keydown', function (event) {
+    if (game.keysPressed.indexOf(event.key) < 0) {
+        game.keysPressed.push(event.key);
+        game.onKeyPress();
+    }
+});
+window.addEventListener('keyup', function (event) {
+    var index = game.keysPressed.indexOf(event.key);
+    if (index >= 0) {
+        game.keysPressed.splice(index, 1);
+    }
+});
+
+game.start();
 
 canvas.getContext("2d").fillRect(0, 0, 20, 20);

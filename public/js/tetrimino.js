@@ -1,13 +1,7 @@
-function Tetromino(type) {
-    this.MAX_ROTATION = 3;
-    this.Direction = {
-        LEFT: 0,
-        RIGHT: 1,
-    };
-    
-    this.type = type;
+function Tetrimino(type) {
     this.x = 3;
     this.y = 0;
+    this.type = type;
     this.rotation = 0;
     
     
@@ -19,25 +13,25 @@ function Tetromino(type) {
     this.rotate = function (r) {
         this.rotation += r;
 
-        if (this.rotation < 0)
-            this.rotation = this.MAX_ROTATION;
-        if (this.rotation > this.MAX_ROTATION)
-            this.rotation = 0;
+        if (this.rotation < Tetrimino.Rotations.DEFAULT)
+            this.rotation = Tetrimino.Rotations.LEFT;
+        if (this.rotation > Tetrimino.Rotations.LEFT)
+            this.rotation = Tetrimino.Rotations.DEFAULT;
     };
 }
-Tetromino.getAllTypes = function () {
+Tetrimino.getAllTypes = function () {
     return [
-        Tetromino.Types.I,
-        Tetromino.Types.O,
-        Tetromino.Types.T,
-        Tetromino.Types.L,
-        Tetromino.Types.J,
-        Tetromino.Types.S,
-        Tetromino.Types.Z,
+        Tetrimino.Types.I,
+        Tetrimino.Types.O,
+        Tetrimino.Types.T,
+        Tetrimino.Types.L,
+        Tetrimino.Types.J,
+        Tetrimino.Types.S,
+        Tetrimino.Types.Z,
     ];
 };
 
-Tetromino.Types = {
+Tetrimino.Types = {
     I: "I",
     O: "O",
     T: "T",
@@ -46,16 +40,17 @@ Tetromino.Types = {
     S: "S",
     Z: "Z"
 };
-Tetromino.Rotations = {
+Tetrimino.Rotations = {
     DEFAULT: 0,
     RIGHT: 1,
     DOWN: 2,
     LEFT: 3,
-    
+}
+Tetrimino.Direction = {
     CLOCKWISE: 1,
     COUNTER_CLOCKWISE: -1,
 };
-Tetromino.Properties = {
+Tetrimino.Properties = {
     Z: {
         color: "red",
         blocks: [

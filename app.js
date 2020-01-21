@@ -2,12 +2,13 @@ var express = require('express'),
     http = require('http');
 
 
-var app = express();
-var server = http.createServer(app);
+var app = express(),
+    server = http.createServer(app),
+    port = process.env.PORT || 8000;
 
 
 app.use('/', express.static('public'));
 
-server.listen(process.env.PORT || 8000);
+server.listen(port);
 
-console.log('Server started. (' + __dirname + ')\n');
+console.log(`Server started on port ${port}`);

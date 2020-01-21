@@ -1,12 +1,14 @@
 function Renderer(game) {
+    const BLOCK_SIZE = 25;
+
     this.game = game;
     this.canvas = this.game.canvas;
     this.context = this.canvas.getContext("2d");
     
     
     this.render = function () {
-        var width = this.game.grid.cols * this.game.grid.blockSize;
-        var height = this.game.grid.rows * this.game.grid.blockSize;
+        var width = this.game.grid.numOfCols * BLOCK_SIZE;
+        var height = this.game.grid.numOfRows * BLOCK_SIZE;
         
         var offset = {
             x: (this.canvas.width / 2) - (width / 2),
@@ -30,8 +32,8 @@ function Renderer(game) {
         this.drawScore();
         
         this.drawGrid(offset);
-        this.drawTetromino(offset);
-        this.drawGhostTetromino(offset);
+        this.drawTetrimino(offset);
+        this.drawGhostTetrimino(offset);
     };
     
     this.drawGrid = function (offset) {
@@ -39,19 +41,19 @@ function Renderer(game) {
         this.context.save();
         this.context.strokeStyle = "#CCC";
     
-        for (var y = 0; y < this.game.grid.rows; y++) {
-            for (var x = 0; x < this.game.grid.cols; x++) {
-                var block = this.game.grid.getBlock(x, y);
+        for (var y = 0; y < this.game.grid.numOfRows; y++) {
+            for (var x = 0; x < this.game.grid.numOfCols; x++) {
+                var blockColor = this.game.grid.getBlock(x, y);
                 
                 this.context.beginPath();
-                this.context.rect(offset.x + x * this.game.blockSize,
-                    offset.y + y * this.game.blockSize,
-                    this.game.blockSize, this.game.blockSize);
+                this.context.rect(offset.x + x * BLOCK_SIZE,
+                    offset.y + y * BLOCK_SIZE,
+                    BLOCK_SIZE, BLOCK_SIZE);
                 this.context.closePath();
                 this.context.stroke();
                 
-                if (block != 0) {
-                    this.context.fillStyle = block;
+                if (blockColor != 0) {
+                    this.context.fillStyle = blockColor;
                     this.context.fill();
                 }
             }
@@ -109,8 +111,8 @@ function Renderer(game) {
         this.context.fillStyle = "#000";
         this.context.fillText("HOLD", 44, 50);
         
-        if (this.game.heldTetrominoType)
-            this.drawBlocks(this.game.heldTetrominoType, 0, 35, 80, 0.6);
+        if (this.game.heldTetriminoType)
+            this.drawBlocks(this.game.heldTetriminoType, 0, 35, 80, 0.6);
         
         this.context.restore();
     };
@@ -130,11 +132,11 @@ function Renderer(game) {
         this.context.restore();
     };
     
-    this.drawBlocks = function (tetrominoType, rotation, x, y, scale) {
-        var properties = Tetromino.Properties[tetrominoType];
+    this.drawBlocks = function (tetriminoType, rotation, x, y, scale) {
+        var properties = Tetrimino.Properties[tetriminoType];
         var blocks = properties.blocks[rotation];
         var color = properties.color;
-        var size = this.game.grid.blockSize * (scale || 1);
+        var size = BLOCK_SIZE * (scale || 1);
         
         this.context.save();
             
@@ -149,9 +151,9 @@ function Renderer(game) {
         this.context.restore();
     };
     
-    this.drawTetromino = function (offset) {
-        var properties = Tetromino.Properties[this.game.tetromino.type];
-        var blocks = properties.blocks[this.game.tetromino.rotation];
+    this.drawTetrimino = function (offset) {
+        var properties = Tetrimino.Properties[this.game.tetrimino.type];
+        var blocks = properties.blocks[this.game.tetrimino.rotation];
         
         this.context.save();
         
@@ -161,9 +163,9 @@ function Renderer(game) {
             var block = blocks[i];
             
             this.context.beginPath();
-            this.context.rect(offset.x + (this.game.tetromino.x + block[0]) * this.game.grid.blockSize,
-                offset.y + (this.game.tetromino.y + block[1]) * this.game.grid.blockSize,
-                this.game.grid.blockSize, this.game.grid.blockSize);
+            this.context.rect(offset.x + (this.game.tetrimino.x + block[0]) * BLOCK_SIZE,
+                offset.y + (this.game.tetrimino.y + block[1]) * BLOCK_SIZE,
+                BLOCK_SIZE, BLOCK_SIZE);
             this.context.closePath();
             this.context.fill();
             this.context.stroke();
@@ -172,17 +174,18 @@ function Renderer(game) {
         this.context.restore();
     };
     
-    this.drawGhostTetromino = function (offset) {
-        var blocks = this.game.getTransformedBlocks(0, this.game.getPredictedLandingY(), 0);
+    this.drawGhostTetrimino = function (offset) {
+        var ghostTetriminoLocation = this.game.getGhostTetriminoLocation();
+        var blocks = this.game.getTransformedBlocks(0, ghostTetriminoLocation.y, 0)
         
         this.context.save();
         this.context.beginPath();
         for (var i = 0; i < blocks.length; i++) {
             var block = blocks[i];
 
-            this.context.rect(offset.x + block[0] * this.game.grid.blockSize,
-                offset.y + block[1] * this.game.grid.blockSize,
-                this.game.grid.blockSize, this.game.grid.blockSize);
+            this.context.rect(offset.x + block[0] * BLOCK_SIZE,
+                offset.y + block[1] * BLOCK_SIZE,
+                BLOCK_SIZE, BLOCK_SIZE);
         }
         this.context.fillStyle = "rgba(0, 0, 0, 0.4)";
         this.context.fill();
