@@ -13,7 +13,7 @@ class Game {
         this.tetrimino = null;
         this.heldTetriminoType = null;
         this.recentInput = null;
-        this.recentWallKick = null;
+        this.recentTetriminoKick = null;
         this.hasSwitchedTetrimino = false;
         this.totalLinesCleared = 0;
         this.backToBack = false;
@@ -219,9 +219,9 @@ class Game {
     checkForTSpin() {
         if (this.tetrimino.type == Tetrimino.Types.T && this.recentInput == Inputs.ROTATION) {
             var frontCorners, backCorners;
-            var tSpinTripleKick = (this.recentWallKick != null &&
-                Math.abs(this.recentWallKick[0]) == 1 &&
-                Math.abs(this.recentWallKick[1]) == 2);
+            var tSpinTripleKick = (this.recentTetriminoKick != null &&
+                Math.abs(this.recentTetriminoKick[0]) == 1 &&
+                Math.abs(this.recentTetriminoKick[1]) == 2);
 
             switch (this.tetrimino.orientation) {
                 case Tetrimino.Orientation.DEFAULT:
@@ -356,7 +356,7 @@ class Game {
     }
 
     onKeyPress() {
-        var wallKickTests, test, i;
+        var kickTests, test, i;
 
         if ((this.isKeyPressed("C") && !this.wasKeyPressed("C")) ||
             (this.isKeyPressed("c") && !this.wasKeyPressed("c")) && !this.hasSwitchedTetrimino) {
@@ -397,37 +397,37 @@ class Game {
                 if (this.tetrimino.type == Tetrimino.Types.I) {
                     switch (this.tetrimino.orientation) {
                         case Tetrimino.Orientation.DEFAULT:
-                            wallKickTests = WallKicks.I.DEFAULT_TO_RIGHT; break;
+                            kickTests = Tetrimino.Kicks.I.DEFAULT_TO_RIGHT; break;
                         case Tetrimino.Orientation.RIGHT:
-                            wallKickTests = WallKicks.I.RIGHT_TO_DOWN; break;
+                            kickTests = Tetrimino.Kicks.I.RIGHT_TO_DOWN; break;
                         case Tetrimino.Orientation.DOWN:
-                            wallKickTests = WallKicks.I.DOWN_TO_LEFT; break;
+                            kickTests = Tetrimino.Kicks.I.DOWN_TO_LEFT; break;
                         case Tetrimino.Orientation.LEFT:
-                            wallKickTests = WallKicks.I.LEFT_TO_DEFAULT; break;
+                            kickTests = Tetrimino.Kicks.I.LEFT_TO_DEFAULT; break;
                     }
                 }
                 else {
                     switch (this.tetrimino.orientation) {
                         case Tetrimino.Orientation.DEFAULT:
-                            wallKickTests = WallKicks.Other.DEFAULT_TO_RIGHT; break;
+                            kickTests = Tetrimino.Kicks.Other.DEFAULT_TO_RIGHT; break;
                         case Tetrimino.Orientation.RIGHT:
-                            wallKickTests = WallKicks.Other.RIGHT_TO_DOWN; break;
+                            kickTests = Tetrimino.Kicks.Other.RIGHT_TO_DOWN; break;
                         case Tetrimino.Orientation.DOWN:
-                            wallKickTests = WallKicks.Other.DOWN_TO_LEFT; break;
+                            kickTests = Tetrimino.Kicks.Other.DOWN_TO_LEFT; break;
                         case Tetrimino.Orientation.LEFT:
-                            wallKickTests = WallKicks.Other.LEFT_TO_DEFAULT; break;
+                            kickTests = Tetrimino.Kicks.Other.LEFT_TO_DEFAULT; break;
                     }
                 }
 
-                for (i = 0; i < wallKickTests.length; i++) {
-                    test = wallKickTests[i];
+                for (i = 0; i < kickTests.length; i++) {
+                    test = kickTests[i];
 
                     if (this.isLocationValid(this.getTransformedBlocks(test[0], test[1], 1))) {
                         this.tetrimino.move(test[0], test[1]);
                         this.tetrimino.rotate(Tetrimino.Direction.CLOCKWISE);
                         this.tickers.land.reset();
                         this.recentInput = Inputs.ROTATION;
-                        this.recentWallKick = test;
+                        this.recentTetriminoKick = test;
                         break;
                     }
                 }
@@ -446,37 +446,37 @@ class Game {
                 if (this.tetrimino.type == Tetrimino.Types.I) {
                     switch (this.tetrimino.orientation) {
                         case Tetrimino.Orientation.DEFAULT:
-                            wallKickTests = WallKicks.I.DEFAULT_TO_LEFT; break;
+                            kickTests = Tetrimino.Kicks.I.DEFAULT_TO_LEFT; break;
                         case Tetrimino.Orientation.LEFT:
-                            wallKickTests = WallKicks.I.LEFT_TO_DOWN; break;
+                            kickTests = Tetrimino.Kicks.I.LEFT_TO_DOWN; break;
                         case Tetrimino.Orientation.DOWN:
-                            wallKickTests = WallKicks.I.DOWN_TO_RIGHT; break;
+                            kickTests = Tetrimino.Kicks.I.DOWN_TO_RIGHT; break;
                         case Tetrimino.Orientation.RIGHT:
-                            wallKickTests = WallKicks.I.RIGHT_TO_DEFAULT; break;
+                            kickTests = Tetrimino.Kicks.I.RIGHT_TO_DEFAULT; break;
                     }
                 }
                 else {
                     switch (this.tetrimino.orientation) {
                         case Tetrimino.Orientation.DEFAULT:
-                            wallKickTests = WallKicks.Other.DEFAULT_TO_LEFT; break;
+                            kickTests = Tetrimino.Kicks.Other.DEFAULT_TO_LEFT; break;
                         case Tetrimino.Orientation.LEFT:
-                            wallKickTests = WallKicks.Other.LEFT_TO_DOWN; break;
+                            kickTests = Tetrimino.Kicks.Other.LEFT_TO_DOWN; break;
                         case Tetrimino.Orientation.DOWN:
-                            wallKickTests = WallKicks.Other.DOWN_TO_RIGHT; break;
+                            kickTests = Tetrimino.Kicks.Other.DOWN_TO_RIGHT; break;
                         case Tetrimino.Orientation.RIGHT:
-                            wallKickTests = WallKicks.Other.RIGHT_TO_DEFAULT; break;
+                            kickTests = Tetrimino.Kicks.Other.RIGHT_TO_DEFAULT; break;
                     }
                 }
 
-                for (i = 0; i < wallKickTests.length; i++) {
-                    test = wallKickTests[i];
+                for (i = 0; i < kickTests.length; i++) {
+                    test = kickTests[i];
 
                     if (this.isLocationValid(this.getTransformedBlocks(test[0], test[1], -1))) {
                         this.tetrimino.move(test[0], test[1]);
                         this.tetrimino.rotate(Tetrimino.Direction.COUNTER_CLOCKWISE);
                         this.tickers.land.reset();
                         this.recentInput = Inputs.ROTATION;
-                        this.recentWallKick = test;
+                        this.recentTetriminoKick = test;
                         break;
                     }
                 }
