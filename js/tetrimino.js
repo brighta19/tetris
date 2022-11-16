@@ -3,13 +3,13 @@ function Tetrimino(type) {
     this.y = 0;
     this.type = type;
     this.rotation = 0;
-    
-    
+
+
     this.move = function (x, y) {
         this.x += x;
         this.y += y;
     };
-    
+
     this.rotate = function (r) {
         this.rotation += r;
 

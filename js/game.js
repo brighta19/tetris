@@ -1,13 +1,13 @@
 function Game(canvas) {
     this.canvas = canvas;
-    
+
     this.keysPressed = [];
     this.previousKeysPressed = [];
-    
+
     this.updatesPerSecond = 20;
-    
+
     this.renderer = new Renderer(this);
-    
+
     this.grid = new Grid();
     this.tetrimino = null;
     this.heldTetriminoType = null;
@@ -19,7 +19,7 @@ function Game(canvas) {
     this.comboBonus = -1;
     this.level = 1;
     this.score = 0;
-    
+
     this.tickers = {
         initialMove: new Ticker(this.updatesPerSecond * 0.2),
         move:        new Ticker(this.updatesPerSecond * 0.03),
@@ -28,25 +28,25 @@ function Game(canvas) {
         land:        new Ticker(this.updatesPerSecond * 0.8),
         forceLand:   new Ticker(this.updatesPerSecond * 2.5),
     };
-    
-    
+
+
     this.start = function () {
         var self = this;
-        
+
         this.queue = new Queue();
         this.previousDate = Date.now();
-        
+
         this.updateInterval = setInterval(function () {
             var currentDate = Date.now();
-            
+
             this.delta = (currentDate - self.previousDate) / 1000;
-            
+
             self.update();
             self.renderer.render();
 
             self.previousDate = currentDate;
         }, 1000 / self.updatesPerSecond);
-        
+
         this.createTetrimino();
     };
 
@@ -55,7 +55,7 @@ function Game(canvas) {
         this.tickers.initialMove.tick();
         this.tickers.autoGoDown.tick();
 
-    
+
         if (this.isKeyPressed("ArrowLeft") && this.tickers.initialMove.isDone() && this.tickers.move.isDone()) {
             if (this.isLocationValid( this.getTransformedBlocks(-1, 0, 0) )) {
                 this.tetrimino.move(-1, 0);
@@ -64,7 +64,7 @@ function Game(canvas) {
                 this.recentInput = Inputs.MOVEMENT;
             }
         }
-        
+
         if (this.isKeyPressed("ArrowRight") && this.tickers.initialMove.isDone() && this.tickers.move.isDone()) {
             if (this.isLocationValid( this.getTransformedBlocks(1, 0, 0) )) {
                 this.tetrimino.move(1, 0);
@@ -73,12 +73,12 @@ function Game(canvas) {
                 this.recentInput = Inputs.MOVEMENT;
             }
         }
-        
+
         if (this.isKeyPressed("ArrowDown") && this.tickers.goDown.isDone()) {
             this.attemptSoftDrop();
         }
 
-        
+
         if (this.isLocationValid( this.getTransformedBlocks(0, 1, 0) )) {
             if (this.tickers.autoGoDown.isDone()) {
                 this.tetrimino.move(0, 1);
@@ -90,27 +90,27 @@ function Game(canvas) {
             this.tickers.land.tick();
             this.tickers.forceLand.tick();
         }
-        
+
         if (this.tickers.land.isDone() ||
         this.tickers.forceLand.isDone()) {
             this.land();
         }
-        
+
         this.tickers.goDown.tick();
-        
+
         this.updatePreviousKeys();
     };
-    
+
     this.hold = function () {
         var shapeBeingHeld = this.heldTetriminoType;
-        
+
         this.heldTetriminoType = this.tetrimino.type;
 
         this.createTetrimino(shapeBeingHeld);
-            
+
         this.hasSwitchedTetrimino = true;
     };
-    
+
     this.attemptSoftDrop = function () {
         if (this.isLocationValid( this.getTransformedBlocks(0, 1, 0) )) {
             this.tetrimino.move(0, 1);
@@ -120,30 +120,30 @@ function Game(canvas) {
             this.recentInput = Inputs.MOVEMENT;
         }
     };
-    
+
     this.doHardDrop = function () {
         var ghostTetriminoLocation = this.getGhostTetriminoLocation();
         this.tetrimino.move(0, ghostTetriminoLocation.y);
         this.score += 2 * ghostTetriminoLocation.y;
-        
+
         if (ghostTetriminoLocation.y > 0)
             this.recentInput = Inputs.MOVEMENT;
     };
-    
+
     this.land = function () {
         var tSpin = this.checkForTSpin();
-        
+
         this.placeTetrimino();
         this.grid.attemptToClearRow();
         this.totalLinesCleared += this.grid.numOfRowsCleared;
-        
+
         this.scorePoints(tSpin);
-            
+
         this.createTetrimino();
-        
+
         this.hasSwitchedTetrimino = false;
     };
-    
+
     this.scorePoints = function (tSpin) {
         if (tSpin == TSpins.REGULAR) {
             // Regular T Spin
@@ -180,7 +180,7 @@ function Game(canvas) {
                 this.score += 100;
                 console.log("T Spin Mini");
             }
-            
+
             if (this.grid.numOfRowsCleared == 0) {
                 this.comboBonus = -1;
             }
@@ -214,14 +214,14 @@ function Game(canvas) {
             }
         }
     };
-    
+
     this.checkForTSpin = function () {
         if (this.tetrimino.type == Tetrimino.Types.T && this.recentInput == Inputs.ROTATION) {
             var frontCorners, backCorners;
             var tSpinTripleKick = (this.recentWallKick != null &&
                 Math.abs(this.recentWallKick[0]) == 1 &&
                 Math.abs(this.recentWallKick[1]) == 2);
-            
+
             switch (this.tetrimino.rotation) {
                 case Tetrimino.Rotations.DEFAULT:
                     frontCorners = [
@@ -233,7 +233,7 @@ function Game(canvas) {
                         !this.grid.isEmpty(this.tetrimino.x + 2, this.tetrimino.y + 2),
                     ];
                     break;
-                    
+
                 case Tetrimino.Rotations.RIGHT:
                     frontCorners = [
                         !this.grid.isEmpty(this.tetrimino.x + 2, this.tetrimino.y),
@@ -244,7 +244,7 @@ function Game(canvas) {
                         !this.grid.isEmpty(this.tetrimino.x, this.tetrimino.y + 2)
                     ];
                     break;
-                    
+
                 case Tetrimino.Rotations.DOWN:
                     frontCorners = [
                         !this.grid.isEmpty(this.tetrimino.x , this.tetrimino.y + 2),
@@ -255,7 +255,7 @@ function Game(canvas) {
                         !this.grid.isEmpty(this.tetrimino.x + 2, this.tetrimino.y)
                     ];
                     break;
-                    
+
                 case Tetrimino.Rotations.LEFT:
                     frontCorners = [
                         !this.grid.isEmpty(this.tetrimino.x, this.tetrimino.y),
@@ -267,12 +267,12 @@ function Game(canvas) {
                     ];
                     break;
             }
-            
+
             var atLeastOneBackCorner = backCorners[0] || backCorners[1];
             var atLeastOneFrontCorner = frontCorners[0] || frontCorners[1];
             var twoBackCorners = backCorners[0] && backCorners[1];
             var twoFrontCorners = frontCorners[0] && frontCorners[1];
-            
+
             if ((atLeastOneBackCorner && twoFrontCorners) ||
             (twoBackCorners && atLeastOneFrontCorner && tSpinTripleKick)) {
                 return TSpins.REGULAR;
@@ -281,13 +281,13 @@ function Game(canvas) {
                 return TSpins.MINI;
             }
         }
-        
+
         return null;
     };
-    
+
     this.createTetrimino = function (type) {
         var t = type || this.queue.getNextTetriminoType();
-        
+
         this.tetrimino = new Tetrimino(t);
 
         this.tickers.autoGoDown.reset();
@@ -311,7 +311,7 @@ function Game(canvas) {
             x: this.tetrimino.x,
             y: 0,
         }
-        
+
         while (this.isLocationValid( this.getTransformedBlocks(0, location.y + 1, 0) )) {
             location.y++;
         }
@@ -338,7 +338,7 @@ function Game(canvas) {
                 block[1] + this.tetrimino.y + translateY,
             ];
         }
-        
+
         return transformedBlocks;
     };
 
@@ -353,10 +353,10 @@ function Game(canvas) {
 
         return true;
     };
-    
+
     this.onKeyPress = function () {
         var wallKickTests, test, i;
-        
+
         if ((this.isKeyPressed("C") && !this.wasKeyPressed("C")) ||
         (this.isKeyPressed("c") && !this.wasKeyPressed("c")) && !this.hasSwitchedTetrimino) {
             this.hold();
@@ -375,7 +375,7 @@ function Game(canvas) {
                 this.recentInput = Inputs.MOVEMENT;
             }
         }
-        
+
         if (this.isKeyPressed("ArrowRight") && !this.wasKeyPressed("ArrowRight")) {
             if (this.isLocationValid( this.getTransformedBlocks(1, 0, 0) )) {
                 this.tetrimino.move(1, 0);
@@ -384,7 +384,7 @@ function Game(canvas) {
                 this.recentInput = Inputs.MOVEMENT;
             }
         }
-        
+
         // Rotate Clockwise
         if (this.isKeyPressed("ArrowUp") && !this.wasKeyPressed("ArrowUp")) {
             if (this.isLocationValid( this.getTransformedBlocks(0, 0, 1) )) {
@@ -417,10 +417,10 @@ function Game(canvas) {
                             wallKickTests = WallKicks.Other.LEFT_TO_DEFAULT; break;
                     }
                 }
-                    
+
                 for (i = 0; i < wallKickTests.length; i++) {
                     test = wallKickTests[i];
-                    
+
                     if (this.isLocationValid( this.getTransformedBlocks(test[0], test[1], 1) )) {
                         this.tetrimino.move(test[0], test[1]);
                         this.tetrimino.rotate(Tetrimino.Direction.CLOCKWISE);
@@ -432,7 +432,7 @@ function Game(canvas) {
                 }
             }
         }
-    
+
         // Counter Clockwise
         if ((this.isKeyPressed("z") && !this.wasKeyPressed("z")) ||
         (this.isKeyPressed("Z") &&  !this.wasKeyPressed("Z"))) {
@@ -466,10 +466,10 @@ function Game(canvas) {
                             wallKickTests = WallKicks.Other.RIGHT_TO_DEFAULT; break;
                     }
                 }
-                    
+
                 for (i = 0; i < wallKickTests.length; i++) {
                     test = wallKickTests[i];
-                    
+
                     if (this.isLocationValid( this.getTransformedBlocks(test[0], test[1], -1) )) {
                         this.tetrimino.move(test[0], test[1]);
                         this.tetrimino.rotate(Tetrimino.Direction.COUNTER_CLOCKWISE);
@@ -481,25 +481,25 @@ function Game(canvas) {
                 }
             }
         }
-        
+
         if (this.isKeyPressed("ArrowDown") && this.tickers.goDown.isDone()) {
             this.attemptSoftDrop();
         }
 
         this.updatePreviousKeys();
     };
-    
+
     this.updatePreviousKeys = function() {
         this.previousKeysPressed = [];
 
         for (var i = 0; i < this.keysPressed.length; i++)
             this.previousKeysPressed[i] = this.keysPressed[i];
     };
-    
+
     this.isKeyPressed = function (key) {
         return this.keysPressed.indexOf(key) >= 0;
     };
-    
+
     this.wasKeyPressed = function (key) {
         return this.previousKeysPressed.indexOf(key) >= 0;
     };
