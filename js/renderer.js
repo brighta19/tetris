@@ -9,9 +9,9 @@ class Renderer {
 
 
     render() {
-        var width = this.game.grid.numOfCols * Renderer.BLOCK_SIZE;
+        let width = Grid.NUM_OF_COLS * Renderer.BLOCK_SIZE;
 
-        var offset = {
+        let offset = {
             x: (this.canvas.width / 2) - (width / 2),
             y: 0,
         };
@@ -32,24 +32,23 @@ class Renderer {
 
         this.drawScore();
 
-        this.drawGrid(offset);
-        this.drawTetrimino(offset);
-        this.drawGhostTetrimino(offset);
+        this.drawPlayingField(offset);
     }
 
     drawGrid(offset) {
-
         this.context.save();
         this.context.strokeStyle = "#CCC";
 
-        for (var y = 0; y < this.game.grid.numOfRows; y++) {
-            for (var x = 0; x < this.game.grid.numOfCols; x++) {
-                var blockColor = this.game.grid.getBlock(x, y);
+        for (let y = Grid.NUM_OF_HIDDEN_ROWS; y < Grid.NUM_OF_ROWS; y++) {
+            for (let x = 0; x < Grid.NUM_OF_COLS; x++) {
+                let blockColor = this.game.grid.getBlock(x, y);
+                let blockX = offset.x + x * Renderer.BLOCK_SIZE;
+                let blockY = offset.y + y * Renderer.BLOCK_SIZE;
+                blockY -= Grid.NUM_OF_HIDDEN_ROWS * Renderer.BLOCK_SIZE;
 
                 this.context.beginPath();
-                this.context.rect(offset.x + x * Renderer.BLOCK_SIZE,
-                    offset.y + y * Renderer.BLOCK_SIZE,
-                    Renderer.BLOCK_SIZE, Renderer.BLOCK_SIZE);
+                this.context.rect(blockX, blockY, Renderer.BLOCK_SIZE,
+                    Renderer.BLOCK_SIZE);
                 this.context.closePath();
                 this.context.stroke();
 
@@ -126,23 +125,23 @@ class Renderer {
         this.context.fillStyle = "#000";
         this.context.fillText("NEXT", 420, 50);
 
-        var nextThreeTypes = this.game.queue.getNextThree();
-        for (var i = 0; i < nextThreeTypes.length; i++)
+        let nextThreeTypes = this.game.queue.getNextThree();
+        for (let i = 0; i < nextThreeTypes.length; i++)
             this.drawBlocks(nextThreeTypes[i], 0, 410, 90 + (i * 80), 0.6);
 
         this.context.restore();
     }
 
     drawBlocks(tetriminoType, rotation, x, y, scale) {
-        var properties = Tetrimino.Properties[tetriminoType];
-        var blocks = properties.blocks[rotation];
-        var color = properties.color;
-        var size = Renderer.BLOCK_SIZE * (scale || 1);
+        let properties = Tetrimino.Properties[tetriminoType];
+        let blocks = properties.blocks[rotation];
+        let color = properties.color;
+        let size = Renderer.BLOCK_SIZE * (scale || 1);
 
         this.context.save();
 
-        for (var i = 0; i < blocks.length; i++) {
-            var block = blocks[i];
+        for (let i = 0; i < blocks.length; i++) {
+            let block = blocks[i];
 
             this.context.fillStyle = color;
             this.context.fillRect(x + block[0] * size,
@@ -153,43 +152,54 @@ class Renderer {
     }
 
     drawTetrimino(offset) {
-        var properties = Tetrimino.Properties[this.game.tetrimino.type];
-        var blocks = properties.blocks[this.game.tetrimino.orientation];
+        let properties = Tetrimino.Properties[this.game.tetrimino.type];
+        let blocks = properties.blocks[this.game.tetrimino.orientation];
 
         this.context.save();
+        this.context.beginPath();
+
+        for (let i = 0; i < blocks.length; i++) {
+            let block = blocks[i];
+            let blockX = offset.x + (this.game.tetrimino.x + block[0]) * Renderer.BLOCK_SIZE;
+            let blockY = offset.y + (this.game.tetrimino.y + block[1]) * Renderer.BLOCK_SIZE;
+            blockY -= Grid.NUM_OF_HIDDEN_ROWS * Renderer.BLOCK_SIZE;
+
+            this.context.rect(blockX, blockY, Renderer.BLOCK_SIZE, Renderer.BLOCK_SIZE);
+        }
 
         this.context.fillStyle = properties.color;
         this.context.strokeStyle = "white";
-        for (var i = 0; i < blocks.length; i++) {
-            var block = blocks[i];
+        this.context.closePath();
 
-            this.context.beginPath();
-            this.context.rect(offset.x + (this.game.tetrimino.x + block[0]) * Renderer.BLOCK_SIZE,
-                offset.y + (this.game.tetrimino.y + block[1]) * Renderer.BLOCK_SIZE,
-                Renderer.BLOCK_SIZE, Renderer.BLOCK_SIZE);
-            this.context.closePath();
-            this.context.fill();
-            this.context.stroke();
-        }
-
+        this.context.fill();
+        this.context.stroke();
         this.context.restore();
     }
 
     drawGhostTetrimino(offset) {
-        var ghostTetriminoLocation = this.game.getGhostTetriminoLocation();
-        var blocks = this.game.getTransformedBlocks(0, ghostTetriminoLocation.y, 0);
+        let ghostTetriminoLocation = this.game.getGhostTetriminoLocation();
+        let blocks = this.game.getTransformedBlocks(0, ghostTetriminoLocation.y, 0);
 
         this.context.save();
         this.context.beginPath();
-        for (var i = 0; i < blocks.length; i++) {
-            var block = blocks[i];
+        for (let i = 0; i < blocks.length; i++) {
+            let block = blocks[i];
+            let blockX = offset.x + block[0] * Renderer.BLOCK_SIZE;
+            let blockY = offset.y + block[1] * Renderer.BLOCK_SIZE;
+            blockY -= Grid.NUM_OF_HIDDEN_ROWS * Renderer.BLOCK_SIZE;
 
-            this.context.rect(offset.x + block[0] * Renderer.BLOCK_SIZE,
-                offset.y + block[1] * Renderer.BLOCK_SIZE,
-                Renderer.BLOCK_SIZE, Renderer.BLOCK_SIZE);
+            this.context.rect(blockX, blockY, Renderer.BLOCK_SIZE, Renderer.BLOCK_SIZE);
         }
+        this.context.closePath();
+
         this.context.fillStyle = "rgba(0, 0, 0, 0.4)";
         this.context.fill();
         this.context.restore();
+    }
+
+    drawPlayingField(offset) {
+        this.drawGrid(offset);
+        this.drawGhostTetrimino(offset);
+        this.drawTetrimino(offset);
     }
 }

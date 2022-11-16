@@ -226,45 +226,45 @@ class Game {
             switch (this.tetrimino.orientation) {
                 case Tetrimino.Orientation.DEFAULT:
                     frontCorners = [
-                        !this.grid.isEmpty(this.tetrimino.x, this.tetrimino.y),
-                        !this.grid.isEmpty(this.tetrimino.x + 2, this.tetrimino.y),
+                        !this.grid.isWithinBoundsAndEmpty(this.tetrimino.x, this.tetrimino.y),
+                        !this.grid.isWithinBoundsAndEmpty(this.tetrimino.x + 2, this.tetrimino.y),
                     ];
                     backCorners = [
-                        !this.grid.isEmpty(this.tetrimino.x, this.tetrimino.y + 2),
-                        !this.grid.isEmpty(this.tetrimino.x + 2, this.tetrimino.y + 2),
+                        !this.grid.isWithinBoundsAndEmpty(this.tetrimino.x, this.tetrimino.y + 2),
+                        !this.grid.isWithinBoundsAndEmpty(this.tetrimino.x + 2, this.tetrimino.y + 2),
                     ];
                     break;
 
                 case Tetrimino.Orientation.RIGHT:
                     frontCorners = [
-                        !this.grid.isEmpty(this.tetrimino.x + 2, this.tetrimino.y),
-                        !this.grid.isEmpty(this.tetrimino.x + 2, this.tetrimino.y + 2)
+                        !this.grid.isWithinBoundsAndEmpty(this.tetrimino.x + 2, this.tetrimino.y),
+                        !this.grid.isWithinBoundsAndEmpty(this.tetrimino.x + 2, this.tetrimino.y + 2)
                     ];
                     backCorners = [
-                        !this.grid.isEmpty(this.tetrimino.x, this.tetrimino.y),
-                        !this.grid.isEmpty(this.tetrimino.x, this.tetrimino.y + 2)
+                        !this.grid.isWithinBoundsAndEmpty(this.tetrimino.x, this.tetrimino.y),
+                        !this.grid.isWithinBoundsAndEmpty(this.tetrimino.x, this.tetrimino.y + 2)
                     ];
                     break;
 
                 case Tetrimino.Orientation.DOWN:
                     frontCorners = [
-                        !this.grid.isEmpty(this.tetrimino.x, this.tetrimino.y + 2),
-                        !this.grid.isEmpty(this.tetrimino.x + 2, this.tetrimino.y + 2)
+                        !this.grid.isWithinBoundsAndEmpty(this.tetrimino.x, this.tetrimino.y + 2),
+                        !this.grid.isWithinBoundsAndEmpty(this.tetrimino.x + 2, this.tetrimino.y + 2)
                     ];
                     backCorners = [
-                        !this.grid.isEmpty(this.tetrimino.x, this.tetrimino.y),
-                        !this.grid.isEmpty(this.tetrimino.x + 2, this.tetrimino.y)
+                        !this.grid.isWithinBoundsAndEmpty(this.tetrimino.x, this.tetrimino.y),
+                        !this.grid.isWithinBoundsAndEmpty(this.tetrimino.x + 2, this.tetrimino.y)
                     ];
                     break;
 
                 case Tetrimino.Orientation.LEFT:
                     frontCorners = [
-                        !this.grid.isEmpty(this.tetrimino.x, this.tetrimino.y),
-                        !this.grid.isEmpty(this.tetrimino.x, this.tetrimino.y + 2)
+                        !this.grid.isWithinBoundsAndEmpty(this.tetrimino.x, this.tetrimino.y),
+                        !this.grid.isWithinBoundsAndEmpty(this.tetrimino.x, this.tetrimino.y + 2)
                     ];
                     backCorners = [
-                        !this.grid.isEmpty(this.tetrimino.x + 2, this.tetrimino.y),
-                        !this.grid.isEmpty(this.tetrimino.x + 2, this.tetrimino.y + 2)
+                        !this.grid.isWithinBoundsAndEmpty(this.tetrimino.x + 2, this.tetrimino.y),
+                        !this.grid.isWithinBoundsAndEmpty(this.tetrimino.x + 2, this.tetrimino.y + 2)
                     ];
                     break;
             }
@@ -289,7 +289,7 @@ class Game {
     createTetrimino(type) {
         var t = type || this.queue.getNextTetriminoType();
 
-        this.tetrimino = new Tetrimino(t);
+        this.tetrimino = new Tetrimino(3, Grid.NUM_OF_HIDDEN_ROWS, t);
 
         this.tickers.autoGoDown.reset();
         this.tickers.land.reset();
@@ -347,7 +347,7 @@ class Game {
         for (var i = 0; i < blocks.length; i++) {
             var block = blocks[i];
 
-            if (!this.grid.isEmpty(block[0], block[1])) {
+            if (!this.grid.isWithinBoundsAndEmpty(block[0], block[1])) {
                 return false;
             }
         }

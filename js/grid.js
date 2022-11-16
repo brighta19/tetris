@@ -1,15 +1,16 @@
 class Grid {
     static EMPTY_BLOCK = 0;
+    static NUM_OF_ROWS = 22;
+    static NUM_OF_COLS = 10;
+    static NUM_OF_HIDDEN_ROWS = 2;
 
     constructor() {
-        this.numOfRows = 20;
-        this.numOfCols = 10;
         this.grid = [];
         this.numOfRowsCleared = 0;
 
-        for (var y = 0; y < this.numOfRows; y++) {
+        for (var y = 0; y < Grid.NUM_OF_ROWS; y++) {
             this.grid[y] = [];
-            for (var x = 0; x < this.numOfCols; x++) {
+            for (var x = 0; x < Grid.NUM_OF_COLS; x++) {
                 this.grid[y][x] = Grid.EMPTY_BLOCK;
             }
         }
@@ -25,7 +26,7 @@ class Grid {
                 this.grid.splice(y, 1);
                 this.grid.unshift([]);
 
-                for (var x = 0; x < this.numOfCols; x++) {
+                for (var x = 0; x < Grid.NUM_OF_COLS; x++) {
                     this.grid[0][x] = Grid.EMPTY_BLOCK;
                 }
 
@@ -36,10 +37,17 @@ class Grid {
         }
     }
 
+    isWithinBoundsAndEmpty(x, y) {
+        return this.isWithinBounds(x, y) && this.isEmpty(x, y);
+    }
+
     isEmpty(x, y) {
-        return (y >= 0 && y < this.numOfRows) &&
-            (x >= 0 && x < this.numOfCols) &&
-            this.grid[y][x] == Grid.EMPTY_BLOCK;
+        return this.grid[y][x] == Grid.EMPTY_BLOCK;
+    }
+
+    isWithinBounds(x, y) {
+        return (y >= 0 && y < Grid.NUM_OF_ROWS) &&
+            (x >= 0 && x < Grid.NUM_OF_COLS);
     }
 
     isRowComplete(y) {

@@ -118,9 +118,9 @@ class Tetrimino {
         ];
     }
 
-    constructor(type) {
-        this.x = 3;
-        this.y = 0;
+    constructor(x, y, type) {
+        this.x = x;
+        this.y = y;
         this.type = type;
         this.orientation = 0;
     }
