@@ -1,21 +1,21 @@
-function Grid() {
-    const EMPTY_BLOCK = 0;
+class Grid {
+    static EMPTY_BLOCK = 0;
 
-    this.numOfRows = 20;
-    this.numOfCols = 10;
-    this.grid = [];
-    this.numOfRowsCleared = 0;
+    constructor() {
+        this.numOfRows = 20;
+        this.numOfCols = 10;
+        this.grid = [];
+        this.numOfRowsCleared = 0;
 
-
-    for (var y = 0; y < this.numOfRows; y++) {
-        this.grid[y] = [];
-        for (var x = 0; x < this.numOfCols; x++) {
-            this.grid[y][x] = EMPTY_BLOCK;
+        for (var y = 0; y < this.numOfRows; y++) {
+            this.grid[y] = [];
+            for (var x = 0; x < this.numOfCols; x++) {
+                this.grid[y][x] = Grid.EMPTY_BLOCK;
+            }
         }
     }
 
-
-    this.attemptToClearRow = function () {
+    attemptToClearRow() {
         var y = this.grid.length - 1;
         this.numOfRowsCleared = 0;
 
@@ -26,7 +26,7 @@ function Grid() {
                 this.grid.unshift([]);
 
                 for (var x = 0; x < this.numOfCols; x++) {
-                    this.grid[0][x] = EMPTY_BLOCK;
+                    this.grid[0][x] = Grid.EMPTY_BLOCK;
                 }
 
             }
@@ -34,23 +34,23 @@ function Grid() {
                 y--;
             }
         }
-    };
+    }
 
-    this.isEmpty = function (x, y) {
+    isEmpty(x, y) {
         return (y >= 0 && y < this.numOfRows) &&
             (x >= 0 && x < this.numOfCols) &&
-            this.grid[y][x] == EMPTY_BLOCK;
-    };
+            this.grid[y][x] == Grid.EMPTY_BLOCK;
+    }
 
-    this.isRowComplete = function (y) {
-        return this.grid[y].indexOf(EMPTY_BLOCK) < 0;
-    };
+    isRowComplete(y) {
+        return this.grid[y].indexOf(Grid.EMPTY_BLOCK) < 0;
+    }
 
-    this.setBlock = function (x, y, color) {
+    setBlock(x, y, color) {
         this.grid[y][x] = color;
-    };
+    }
 
-    this.getBlock = function (x, y) {
+    getBlock(x, y) {
         return this.grid[y][x];
-    };
+    }
 }

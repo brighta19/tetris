@@ -50,5 +50,3 @@ window.addEventListener('keyup', function (event) {
 });
 
 game.start();
-
-canvas.getContext("2d").fillRect(0, 0, 20, 20);

@@ -1,7 +1,9 @@
-function Queue() {
-    this.queue = [];
+class Queue {
+    constructor() {
+        this.queue = [];
+    }
 
-    this.generateNextSet = function () {
+    generateNextSet() {
         var types = Tetrimino.getAllTypes();
 
         while (types.length > 0) {
@@ -10,19 +12,19 @@ function Queue() {
             this.queue.push(types[randomIndex]);
             types.splice(randomIndex, 1);
         }
-    };
+    }
 
-    this.getNextThree = function () {
+    getNextThree() {
         if (this.queue.length < 3)
             this.generateNextSet();
 
-        return [ this.queue[0], this.queue[1], this.queue[2] ];
-    };
+        return [this.queue[0], this.queue[1], this.queue[2]];
+    }
 
-    this.getNextTetriminoType = function () {
+    getNextTetriminoType() {
         if (this.queue.length == 0)
             this.generateNextSet();
 
         return this.queue.splice(0, 1)[0];
-    };
+    }
 }

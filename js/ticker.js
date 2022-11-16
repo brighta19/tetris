@@ -1,16 +1,18 @@
-function Ticker(maxTicks) {
-    this.maxTicks = maxTicks;
-    this.ticks = 0;
-
-    this.isDone = function () {
-        return this.ticks >= Math.ceil(this.maxTicks);
-    };
-
-    this.tick = function () {
-        this.ticks++;
-    };
-
-    this.reset = function () {
+class Ticker {
+    constructor(maxTicks) {
+        this.maxTicks = maxTicks;
         this.ticks = 0;
-    };
+    }
+
+    isDone() {
+        return this.ticks >= Math.ceil(this.maxTicks);
+    }
+
+    tick() {
+        this.ticks++;
+    }
+
+    reset() {
+        this.ticks = 0;
+    }
 }
