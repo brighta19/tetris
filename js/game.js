@@ -157,15 +157,15 @@ class Game {
             else if (this.grid.numOfRowsCleared == 1) {
                 this.comboBonus++;
                 this.score += 800 * (this.backToBack ? 1.5 : 1) + (this.comboBonus * 50);
-                this.backToBack = true;
                 console.log((this.backToBack ? "Back to back " : "") + "T Spin Single" + (this.comboBonus > 1 ? " + COMBO x " + this.comboBonus : ""));
+                this.backToBack = true;
             }
             // T Spin Double
             else if (this.grid.numOfRowsCleared == 2) {
                 this.comboBonus++;
                 this.score += 1200 * (this.backToBack ? 1.5 : 1) + (this.comboBonus * 50);
-                this.backToBack = true;
                 console.log((this.backToBack ? "Back to back " : "") + "T Spin Double" + (this.comboBonus > 1 ? " + COMBO x " + this.comboBonus : ""));
+                this.backToBack = true;
             }
             // T Spin Triple
             else if (this.grid.numOfRowsCleared == 3) {
