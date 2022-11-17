@@ -238,67 +238,67 @@ class Game {
 
     checkForTSpin() {
         if (this.tetrimino.type == Tetrimino.Types.T && this.recentInput == Inputs.ROTATION) {
-            var frontCorners, backCorners;
-            var tSpinTripleKick = (this.recentTetriminoKick != null &&
+            let topCorners, bottomCorners;
+            let tSpinTripleKick = (this.recentTetriminoKick != null &&
                 Math.abs(this.recentTetriminoKick[0]) == 1 &&
-                Math.abs(this.recentTetriminoKick[1]) == 2);
+                this.recentTetriminoKick[1] == -2);
 
             switch (this.tetrimino.orientation) {
                 case Tetrimino.Orientation.DEFAULT:
-                    frontCorners = [
+                    topCorners = [
                         !this.grid.isWithinBoundsAndEmpty(this.tetrimino.x, this.tetrimino.y),
                         !this.grid.isWithinBoundsAndEmpty(this.tetrimino.x + 2, this.tetrimino.y),
                     ];
-                    backCorners = [
+                    bottomCorners = [
                         !this.grid.isWithinBoundsAndEmpty(this.tetrimino.x, this.tetrimino.y + 2),
                         !this.grid.isWithinBoundsAndEmpty(this.tetrimino.x + 2, this.tetrimino.y + 2),
                     ];
                     break;
 
                 case Tetrimino.Orientation.RIGHT:
-                    frontCorners = [
+                    topCorners = [
                         !this.grid.isWithinBoundsAndEmpty(this.tetrimino.x + 2, this.tetrimino.y),
                         !this.grid.isWithinBoundsAndEmpty(this.tetrimino.x + 2, this.tetrimino.y + 2)
                     ];
-                    backCorners = [
+                    bottomCorners = [
                         !this.grid.isWithinBoundsAndEmpty(this.tetrimino.x, this.tetrimino.y),
                         !this.grid.isWithinBoundsAndEmpty(this.tetrimino.x, this.tetrimino.y + 2)
                     ];
                     break;
 
                 case Tetrimino.Orientation.DOWN:
-                    frontCorners = [
+                    topCorners = [
                         !this.grid.isWithinBoundsAndEmpty(this.tetrimino.x, this.tetrimino.y + 2),
                         !this.grid.isWithinBoundsAndEmpty(this.tetrimino.x + 2, this.tetrimino.y + 2)
                     ];
-                    backCorners = [
+                    bottomCorners = [
                         !this.grid.isWithinBoundsAndEmpty(this.tetrimino.x, this.tetrimino.y),
                         !this.grid.isWithinBoundsAndEmpty(this.tetrimino.x + 2, this.tetrimino.y)
                     ];
                     break;
 
                 case Tetrimino.Orientation.LEFT:
-                    frontCorners = [
+                    topCorners = [
                         !this.grid.isWithinBoundsAndEmpty(this.tetrimino.x, this.tetrimino.y),
                         !this.grid.isWithinBoundsAndEmpty(this.tetrimino.x, this.tetrimino.y + 2)
                     ];
-                    backCorners = [
+                    bottomCorners = [
                         !this.grid.isWithinBoundsAndEmpty(this.tetrimino.x + 2, this.tetrimino.y),
                         !this.grid.isWithinBoundsAndEmpty(this.tetrimino.x + 2, this.tetrimino.y + 2)
                     ];
                     break;
             }
 
-            var atLeastOneBackCorner = backCorners[0] || backCorners[1];
-            var atLeastOneFrontCorner = frontCorners[0] || frontCorners[1];
-            var twoBackCorners = backCorners[0] && backCorners[1];
-            var twoFrontCorners = frontCorners[0] && frontCorners[1];
+            let atLeastOneBottomCorner = bottomCorners[0] || bottomCorners[1];
+            let atLeastOneTopCorner = topCorners[0] || topCorners[1];
+            let twoBottomCorners = bottomCorners[0] && bottomCorners[1];
+            let twoTopCorners = topCorners[0] && topCorners[1];
 
-            if ((atLeastOneBackCorner && twoFrontCorners) ||
-                (twoBackCorners && atLeastOneFrontCorner && tSpinTripleKick)) {
+            if ((twoTopCorners && atLeastOneBottomCorner) ||
+                (twoBottomCorners && atLeastOneTopCorner && tSpinTripleKick)) {
                 return Tetrimino.TSpins.REGULAR;
             }
-            else if (twoBackCorners && atLeastOneFrontCorner) {
+            else if (twoBottomCorners && atLeastOneTopCorner) {
                 return Tetrimino.TSpins.MINI;
             }
         }
