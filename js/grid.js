@@ -8,16 +8,20 @@ class Grid {
         this.grid = [];
         this.numOfRowsCleared = 0;
 
-        for (var y = 0; y < Grid.NUM_OF_ROWS; y++) {
+        this.reset();
+    }
+
+    reset() {
+        for (let y = 0; y < Grid.NUM_OF_ROWS; y++) {
             this.grid[y] = [];
-            for (var x = 0; x < Grid.NUM_OF_COLS; x++) {
+            for (let x = 0; x < Grid.NUM_OF_COLS; x++) {
                 this.grid[y][x] = Grid.EMPTY_BLOCK;
             }
         }
     }
 
     attemptToClearRow() {
-        var y = this.grid.length - 1;
+        let y = this.grid.length - 1;
         this.numOfRowsCleared = 0;
 
         while (y >= 0) {
@@ -26,7 +30,7 @@ class Grid {
                 this.grid.splice(y, 1);
                 this.grid.unshift([]);
 
-                for (var x = 0; x < Grid.NUM_OF_COLS; x++) {
+                for (let x = 0; x < Grid.NUM_OF_COLS; x++) {
                     this.grid[0][x] = Grid.EMPTY_BLOCK;
                 }
 
