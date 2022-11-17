@@ -46,22 +46,12 @@ class Game {
     }
 
     start() {
-        var self = this;
+        this.updateInterval = setInterval(() => {
+            this.update();
+            this.renderer.render();
+        }, 1000 / this.updatesPerSecond);
 
         this.queue = new Queue();
-        this.previousDate = Date.now();
-
-        this.updateInterval = setInterval(function () {
-            var currentDate = Date.now();
-
-            this.delta = (currentDate - self.previousDate) / 1000;
-
-            self.update();
-            self.renderer.render();
-
-            self.previousDate = currentDate;
-        }, 1000 / self.updatesPerSecond);
-
         this.createTetrimino();
     }
 
