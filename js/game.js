@@ -1,4 +1,18 @@
 class Game {
+    static Points = {
+        SINGLE: 100,
+        DOUBLE: 300,
+        TRIPLE: 500,
+        TETRIS: 800,
+        TSPIN_SINGLE: 800,
+        TSPIN_DOUBLE: 1200,
+        TSPIN_TRIPLE: 1600,
+        TSPIN_REGULAR: 400,
+        TSPIN_MINI: 100,
+        BACK_TO_BACK_MULTIPLIER: 1.5,
+        COMBO_BONUS: 50,
+    }
+
     constructor(canvas) {
         this.canvas = canvas;
 
@@ -17,7 +31,7 @@ class Game {
         this.hasSwitchedTetrimino = false;
         this.totalLinesCleared = 0;
         this.backToBack = false;
-        this.comboBonus = -1;
+        this.comboLength = -1;
         this.level = 1;
         this.score = 0;
 
@@ -146,74 +160,82 @@ class Game {
     }
 
     scorePoints(tSpin) {
-        if (tSpin == TSpins.REGULAR) {
+        if (tSpin == Tetrimino.TSpins.REGULAR) {
             // Regular T Spin
             if (this.grid.numOfRowsCleared == 0) {
-                this.score += 400;
-                this.comboBonus = -1;
+                this.score += Game.Points.TSPIN_REGULAR;
+                this.comboLength = -1;
                 console.log("T Spin");
             }
             // T Spin Single
             else if (this.grid.numOfRowsCleared == 1) {
-                this.comboBonus++;
-                this.score += 800 * (this.backToBack ? 1.5 : 1) + (this.comboBonus * 50);
-                console.log((this.backToBack ? "Back to back " : "") + "T Spin Single" + (this.comboBonus > 1 ? " + COMBO x " + this.comboBonus : ""));
+                this.comboLength++;
+                this.score += Game.Points.TSPIN_SINGLE * this.getLineScoreMultiplier() + this.getComboBonus();
+                console.log((this.backToBack ? "Back to back " : "") + "T Spin Single" + (this.comboLength > 1 ? " + COMBO x " + this.comboLength : ""));
                 this.backToBack = true;
             }
             // T Spin Double
             else if (this.grid.numOfRowsCleared == 2) {
-                this.comboBonus++;
-                this.score += 1200 * (this.backToBack ? 1.5 : 1) + (this.comboBonus * 50);
-                console.log((this.backToBack ? "Back to back " : "") + "T Spin Double" + (this.comboBonus > 1 ? " + COMBO x " + this.comboBonus : ""));
+                this.comboLength++;
+                this.score += Game.Points.TSPIN_DOUBLE * this.getLineScoreMultiplier() + this.getComboBonus();
+                console.log((this.backToBack ? "Back to back " : "") + "T Spin Double" + (this.comboLength > 1 ? " + COMBO x " + this.comboLength : ""));
                 this.backToBack = true;
             }
             // T Spin Triple
             else if (this.grid.numOfRowsCleared == 3) {
-                this.comboBonus++;
-                this.score += 1600 * (this.backToBack ? 1.5 : 1) + (this.comboBonus * 50);
-                console.log((this.backToBack ? "Back to back " : "") + "T Spin Triple" + (this.comboBonus > 1 ? " + COMBO x " + this.comboBonus : ""));
+                this.comboLength++;
+                this.score += Game.Points.TSPIN_TRIPLE * this.getLineScoreMultiplier() + this.getComboBonus();
+                console.log((this.backToBack ? "Back to back " : "") + "T Spin Triple" + (this.comboLength > 1 ? " + COMBO x " + this.comboLength : ""));
                 this.backToBack = true;
             }
         }
         else {
             // T Spin Mini
-            if (tSpin == TSpins.MINI) {
-                this.score += 100;
+            if (tSpin == Tetrimino.TSpins.MINI) {
+                this.score += Game.Points.TSPIN_MINI;
                 console.log("T Spin Mini");
             }
 
             if (this.grid.numOfRowsCleared == 0) {
-                this.comboBonus = -1;
+                this.comboLength = -1;
             }
             // Single Line Clear
             else if (this.grid.numOfRowsCleared == 1) {
-                this.comboBonus++;
-                this.score += 100 + (this.comboBonus * 50);
+                this.comboLength++;
+                this.score += Game.Points.SINGLE + this.getComboBonus();
                 this.backToBack = false;
-                console.log("Single" + (this.comboBonus > 1 ? " + COMBO x " + this.comboBonus : ""));
+                console.log("Single" + (this.comboLength > 1 ? " + COMBO x " + this.comboLength : ""));
             }
             // Double Line Clear
             else if (this.grid.numOfRowsCleared == 2) {
-                this.comboBonus++;
-                this.score += 300 + (this.comboBonus * 50);
+                this.comboLength++;
+                this.score += Game.Points.DOUBLE + this.getComboBonus();
                 this.backToBack = false;
-                console.log("Double" + (this.comboBonus > 1 ? " + COMBO x " + this.comboBonus : ""));
+                console.log("Double" + (this.comboLength > 1 ? " + COMBO x " + this.comboLength : ""));
             }
             // Triple Line Clear
             else if (this.grid.numOfRowsCleared == 3) {
-                this.comboBonus++;
-                this.score += 500 + (this.comboBonus * 50);
+                this.comboLength++;
+                this.score += Game.Points.TRIPLE + this.getComboBonus();
                 this.backToBack = false;
-                console.log("Triple" + (this.comboBonus > 1 ? " + COMBO x " + this.comboBonus : ""));
+                console.log("Triple" + (this.comboLength > 1 ? " + COMBO x " + this.comboLength : ""));
             }
             // Tetris
             else if (this.grid.numOfRowsCleared == 4) {
-                this.comboBonus++;
-                this.score += 800 * (this.backToBack ? 1.5 : 1) + (this.comboBonus * 50);
-                console.log((this.backToBack ? "Back to back " : "") + "Tetris" + (this.comboBonus > 1 ? " + COMBO x " + this.comboBonus : ""));
+                this.comboLength++;
+                this.score += Game.Points.TETRIS * this.getLineScoreMultiplier() + this.getComboBonus();
+                console.log((this.backToBack ? "Back to back " : "") + "Tetris" + (this.comboLength > 1 ? " + COMBO x " + this.comboLength : ""));
                 this.backToBack = true;
             }
         }
+    }
+
+    getLineScoreMultiplier() {
+        return this.backToBack ? Game.Points.BACK_TO_BACK_MULTIPLIER : 1;
+    }
+
+    getComboBonus() {
+        return this.comboLength > 0 ? this.comboLength * 50 : 0;
     }
 
     checkForTSpin() {
@@ -276,10 +298,10 @@ class Game {
 
             if ((atLeastOneBackCorner && twoFrontCorners) ||
                 (twoBackCorners && atLeastOneFrontCorner && tSpinTripleKick)) {
-                return TSpins.REGULAR;
+                return Tetrimino.TSpins.REGULAR;
             }
             else if (twoBackCorners && atLeastOneFrontCorner) {
-                return TSpins.MINI;
+                return Tetrimino.TSpins.MINI;
             }
         }
 

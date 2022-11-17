@@ -105,6 +105,10 @@ class Tetrimino {
             DEFAULT_TO_LEFT: [ [1, 0], [1, -1], [0, 2], [1, 2] ],
         }
     };
+    static TSpins = {
+        REGULAR: 0,
+        MINI: 1,
+    };
 
     static getAllTypes() {
         return [

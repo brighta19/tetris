@@ -5,12 +5,6 @@ var Inputs = {
     ROTATION: 1,
 };
 
-var TSpins = {
-    REGULAR: 0,
-    MINI: 1,
-};
-
-
 var canvas = document.getElementById("cvs");
 var game = new Game(canvas);
 
