@@ -34,6 +34,7 @@ class Game {
         this.comboLength = -1;
         this.level = 1;
         this.score = 0;
+        this.gameOver = false;
 
         this.tickers = {
             initialMove: new Ticker(this.updatesPerSecond * 0.2),
@@ -53,6 +54,13 @@ class Game {
 
         this.queue = new Queue();
         this.createTetrimino();
+        this.gameOver = false;
+    }
+
+    stop() {
+        this.gameOver = true;
+        clearInterval(this.updateInterval);
+        console.log("Game Over");
     }
 
     update() {
@@ -299,9 +307,22 @@ class Game {
     }
 
     createTetrimino(type) {
-        var t = type || this.queue.getNextTetriminoType();
+        let t = type || this.queue.getNextTetriminoType();
 
         this.tetrimino = new Tetrimino(3, Grid.NUM_OF_HIDDEN_ROWS, t);
+
+        let translateCounter = 0;
+        while (translateCounter < Grid.NUM_OF_HIDDEN_ROWS &&
+            !this.isLocationValid(this.getTransformedBlocks(0, 0, 0))
+        ) {
+            this.tetrimino.y -= 1;
+            translateCounter++;
+        }
+
+        if (!this.isLocationValid(this.getTransformedBlocks(0, 0, 0))) {
+            this.stop();
+            return;
+        }
 
         this.tickers.autoGoDown.reset();
         this.tickers.land.reset();
