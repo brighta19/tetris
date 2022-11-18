@@ -4,10 +4,10 @@ class Queue {
     }
 
     generateNextSet() {
-        var types = Tetrimino.getAllTypes();
+        let types = Tetrimino.getAllTypes();
 
         while (types.length > 0) {
-            var randomIndex = Math.floor(Math.random() * types.length);
+            let randomIndex = Math.floor(Math.random() * types.length);
 
             this.queue.push(types[randomIndex]);
             types.splice(randomIndex, 1);

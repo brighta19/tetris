@@ -1,12 +1,7 @@
 // https://harddrop.com/wiki/
 
-var Inputs = {
-    MOVEMENT: 0,
-    ROTATION: 1,
-};
-
-var canvas = document.getElementById("cvs");
-var game = new Game(canvas);
+let canvas = document.getElementById("cvs");
+let game = new Game(canvas);
 
 window.addEventListener('keydown', function (event) {
     if (game.keysPressed.indexOf(event.key) < 0) {
@@ -15,7 +10,7 @@ window.addEventListener('keydown', function (event) {
     }
 });
 window.addEventListener('keyup', function (event) {
-    var index = game.keysPressed.indexOf(event.key);
+    let index = game.keysPressed.indexOf(event.key);
     if (index >= 0) {
         game.keysPressed.splice(index, 1);
     }

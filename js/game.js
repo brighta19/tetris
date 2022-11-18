@@ -16,6 +16,10 @@ class Game {
         BACK_TO_BACK_MULTIPLIER: 1.5,
         COMBO_BONUS: 50,
     }
+    static TetriminoAction = {
+        TRANSLATION: 0,
+        ROTATION: 1,
+    };
 
     constructor(canvas) {
         this.canvas = canvas;
@@ -30,7 +34,7 @@ class Game {
         this.grid = new Grid();
         this.tetrimino = null;
         this.heldTetriminoType = null;
-        this.recentInput = null;
+        this.recentTetriminoAction = null;
         this.recentTetriminoKick = null;
         this.hasSwitchedTetrimino = false;
         this.totalLinesCleared = 0;
@@ -57,7 +61,7 @@ class Game {
         }, 1000 / this.updatesPerSecond);
 
         this.queue = new Queue();
-        this.createTetrimino();
+        this.spawnTetrimino();
         this.gameOver = false;
     }
 
@@ -65,6 +69,22 @@ class Game {
         this.gameOver = true;
         clearInterval(this.updateInterval);
         console.log("Game Over");
+    }
+
+    moveTetriminoLeft() {
+        this.tetrimino.move(-1, 0);
+        this.tickers.move.reset();
+        this.tickers.land.reset();
+        this.recentTetriminoKick = null;
+        this.recentTetriminoAction = Game.TetriminoAction.TRANSLATION;
+    }
+
+    moveTetriminoRight() {
+        this.tetrimino.move(1, 0);
+        this.tickers.move.reset();
+        this.tickers.land.reset();
+        this.recentTetriminoKick = null;
+        this.recentTetriminoAction = Game.TetriminoAction.TRANSLATION;
     }
 
     update() {
@@ -75,19 +95,13 @@ class Game {
 
         if (this.isKeyPressed("ArrowLeft") && this.tickers.initialMove.isDone() && this.tickers.move.isDone()) {
             if (this.isLocationValid(this.getTransformedBlocks(-1, 0, 0))) {
-                this.tetrimino.move(-1, 0);
-                this.tickers.move.reset();
-                this.tickers.land.reset();
-                this.recentInput = Inputs.MOVEMENT;
+                this.moveTetriminoLeft();
             }
         }
 
         if (this.isKeyPressed("ArrowRight") && this.tickers.initialMove.isDone() && this.tickers.move.isDone()) {
             if (this.isLocationValid(this.getTransformedBlocks(1, 0, 0))) {
-                this.tetrimino.move(1, 0);
-                this.tickers.move.reset();
-                this.tickers.land.reset();
-                this.recentInput = Inputs.MOVEMENT;
+                this.moveTetriminoRight();
             }
         }
 
@@ -100,7 +114,7 @@ class Game {
             if (this.tickers.autoGoDown.isDone()) {
                 this.tetrimino.move(0, 1);
                 this.tickers.autoGoDown.reset();
-                this.recentInput = Inputs.MOVEMENT;
+                this.recentTetriminoAction = Game.TetriminoAction.TRANSLATION;
             }
         }
         else {
@@ -118,13 +132,10 @@ class Game {
         this.updatePreviousKeys();
     }
 
-    hold() {
-        var shapeBeingHeld = this.heldTetriminoType;
-
+    holdTetrimino() {
+        let shapeBeingHeld = this.heldTetriminoType;
         this.heldTetriminoType = this.tetrimino.type;
-
-        this.createTetrimino(shapeBeingHeld);
-
+        this.spawnTetrimino(shapeBeingHeld);
         this.hasSwitchedTetrimino = true;
     }
 
@@ -134,29 +145,29 @@ class Game {
             this.tickers.goDown.reset();
             this.tickers.autoGoDown.reset();
             this.score++;
-            this.recentInput = Inputs.MOVEMENT;
+            this.recentTetriminoAction = Game.TetriminoAction.TRANSLATION;
         }
     }
 
     doHardDrop() {
-        var ghostTetriminoLocation = this.getGhostTetriminoLocation();
+        let ghostTetriminoLocation = this.getGhostTetriminoLocation();
         this.tetrimino.move(0, ghostTetriminoLocation.y);
         this.score += 2 * ghostTetriminoLocation.y;
 
         if (ghostTetriminoLocation.y > 0)
-            this.recentInput = Inputs.MOVEMENT;
+            this.recentTetriminoAction = Game.TetriminoAction.TRANSLATION;
     }
 
     land() {
-        var tSpin = this.checkForTSpin();
+        let tSpin = this.checkForTSpin();
 
-        this.placeTetrimino();
+        this.lockTetrimino();
         this.grid.attemptToClearRow();
         this.totalLinesCleared += this.grid.numOfRowsCleared;
 
         this.scorePoints(tSpin);
 
-        this.createTetrimino();
+        this.spawnTetrimino();
 
         this.hasSwitchedTetrimino = false;
     }
@@ -257,7 +268,7 @@ class Game {
     }
 
     checkForTSpin() {
-        if (this.tetrimino.type == Tetrimino.Types.T && this.recentInput == Inputs.ROTATION) {
+        if (this.tetrimino.type == Tetrimino.Types.T && this.recentTetriminoAction == Game.TetriminoAction.ROTATION) {
             let topCorners, bottomCorners;
             let tSpinTripleKick = (this.recentTetriminoKick != null &&
                 Math.abs(this.recentTetriminoKick[0]) == 1 &&
@@ -326,7 +337,7 @@ class Game {
         return null;
     }
 
-    createTetrimino(type) {
+    spawnTetrimino(type) {
         let t = type || this.queue.getNextTetriminoType();
 
         this.tetrimino = new Tetrimino(3, Grid.NUM_OF_HIDDEN_ROWS, t);
@@ -349,19 +360,19 @@ class Game {
         this.tickers.forceLand.reset();
     }
 
-    placeTetrimino() {
-        var properties = Tetrimino.Properties[this.tetrimino.type];
-        var blocks = properties.blocks[this.tetrimino.orientation];
-        var color = properties.color;
+    lockTetrimino() {
+        let properties = Tetrimino.Properties[this.tetrimino.type];
+        let blocks = properties.blocks[this.tetrimino.orientation];
+        let color = properties.color;
 
-        for (var i = 0; i < blocks.length; i++) {
-            var block = blocks[i];
+        for (let i = 0; i < blocks.length; i++) {
+            let block = blocks[i];
             this.grid.setBlock(this.tetrimino.x + block[0], this.tetrimino.y + block[1], color);
         }
     }
 
     getGhostTetriminoLocation() {
-        var location = {
+        let location = {
             x: this.tetrimino.x,
             y: 0,
         };
@@ -374,19 +385,19 @@ class Game {
     }
 
     getTransformedBlocks(translateX, translateY, rotate) {
-        var blockRotations = Tetrimino.Properties[this.tetrimino.type].blocks;
-        var r = this.tetrimino.orientation + rotate;
+        let blockRotations = Tetrimino.Properties[this.tetrimino.type].blocks;
+        let r = this.tetrimino.orientation + rotate;
 
         if (r < Tetrimino.Orientation.DEFAULT)
             r = Tetrimino.Orientation.LEFT;
         if (r > Tetrimino.Orientation.LEFT)
             r = Tetrimino.Orientation.DEFAULT;
 
-        var blocks = blockRotations[r];
-        var transformedBlocks = [];
+        let blocks = blockRotations[r];
+        let transformedBlocks = [];
 
-        for (var i = 0; i < blocks.length; i++) {
-            var block = blocks[i];
+        for (let i = 0; i < blocks.length; i++) {
+            let block = blocks[i];
             transformedBlocks[i] = [
                 block[0] + this.tetrimino.x + translateX,
                 block[1] + this.tetrimino.y + translateY,
@@ -397,8 +408,8 @@ class Game {
     }
 
     isLocationValid(blocks) {
-        for (var i = 0; i < blocks.length; i++) {
-            var block = blocks[i];
+        for (let i = 0; i < blocks.length; i++) {
+            let block = blocks[i];
 
             if (!this.grid.isWithinBoundsAndEmpty(block[0], block[1])) {
                 return false;
@@ -411,7 +422,7 @@ class Game {
     onKeyPress() {
         if ((this.isKeyPressed("C") && !this.wasKeyPressed("C")) ||
             (this.isKeyPressed("c") && !this.wasKeyPressed("c")) && !this.hasSwitchedTetrimino) {
-            this.hold();
+            this.holdTetrimino();
         }
 
         if (this.isKeyPressed((" ")) && !this.wasKeyPressed(" ")) {
@@ -424,7 +435,7 @@ class Game {
                 this.tetrimino.move(-1, 0);
                 this.tickers.initialMove.reset();
                 this.tickers.land.reset();
-                this.recentInput = Inputs.MOVEMENT;
+                this.recentTetriminoAction = Game.TetriminoAction.TRANSLATION;
             }
         }
 
@@ -433,7 +444,7 @@ class Game {
                 this.tetrimino.move(1, 0);
                 this.tickers.initialMove.reset();
                 this.tickers.land.reset();
-                this.recentInput = Inputs.MOVEMENT;
+                this.recentTetriminoAction = Game.TetriminoAction.TRANSLATION;
             }
         }
 
@@ -442,7 +453,7 @@ class Game {
             if (this.isLocationValid(this.getTransformedBlocks(0, 0, 1))) {
                 this.tetrimino.rotate(Tetrimino.Direction.CLOCKWISE);
                 this.tickers.land.reset();
-                this.recentInput = Inputs.ROTATION;
+                this.recentTetriminoAction = Game.TetriminoAction.ROTATION;
             }
             else if (this.tetrimino.type != Tetrimino.Types.O) {
                 let kickTests;
@@ -478,7 +489,7 @@ class Game {
                         this.tetrimino.move(test[0], test[1]);
                         this.tetrimino.rotate(Tetrimino.Direction.CLOCKWISE);
                         this.tickers.land.reset();
-                        this.recentInput = Inputs.ROTATION;
+                        this.recentTetriminoAction = Game.TetriminoAction.ROTATION;
                         this.recentTetriminoKick = test;
                         console.log("Kick");
                         break;
@@ -493,7 +504,7 @@ class Game {
             if (this.isLocationValid(this.getTransformedBlocks(0, 0, -1))) {
                 this.tetrimino.rotate(Tetrimino.Direction.COUNTER_CLOCKWISE);
                 this.tickers.land.reset();
-                this.recentInput = Inputs.ROTATION;
+                this.recentTetriminoAction = Game.TetriminoAction.ROTATION;
             }
             else if (this.tetrimino.type != Tetrimino.Types.O) {
                 let kickTests;
@@ -529,7 +540,7 @@ class Game {
                         this.tetrimino.move(test[0], test[1]);
                         this.tetrimino.rotate(Tetrimino.Direction.COUNTER_CLOCKWISE);
                         this.tickers.land.reset();
-                        this.recentInput = Inputs.ROTATION;
+                        this.recentTetriminoAction = Game.TetriminoAction.ROTATION;
                         this.recentTetriminoKick = test;
                         console.log("Kick");
                         break;
@@ -548,7 +559,7 @@ class Game {
     updatePreviousKeys() {
         this.previousKeysPressed = [];
 
-        for (var i = 0; i < this.keysPressed.length; i++)
+        for (let i = 0; i < this.keysPressed.length; i++)
             this.previousKeysPressed[i] = this.keysPressed[i];
     }
 
