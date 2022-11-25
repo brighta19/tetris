@@ -420,6 +420,9 @@ class Game {
     }
 
     onKeyPress() {
+        if (this.gameOver)
+            return;
+
         if ((this.isKeyPressed("C") && !this.wasKeyPressed("C")) ||
             (this.isKeyPressed("c") && !this.wasKeyPressed("c")) && !this.hasSwitchedTetrimino) {
             this.holdTetrimino();
