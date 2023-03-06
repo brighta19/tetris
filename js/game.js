@@ -179,6 +179,9 @@ class Game {
         this.recentTetriminoTspin = this.checkForTSpin();
 
         this.lockTetrimino();
+
+        this.checkForLockOut();
+
         if (this.gameOver)
             return;
 
@@ -384,7 +387,6 @@ class Game {
         let properties = Tetrimino.Properties[this.tetrimino.type];
         let blocks = properties.blocks[this.tetrimino.orientation];
         let color = properties.color;
-        let numOfBlocksHidden = 0;
 
         for (let i = 0; i < blocks.length; i++) {
             let block = blocks[i];
@@ -392,13 +394,7 @@ class Game {
             let y = this.tetrimino.y + block[1];
 
             this.grid.setBlock(x, y, color);
-
-            if (y < Grid.NUM_OF_HIDDEN_ROWS)
-                numOfBlocksHidden++;
         }
-
-        if (numOfBlocksHidden == 4)
-            this.stop(Game.GameOverReason.LOCK_OUT);
     }
 
     getGhostTetriminoLocation() {
@@ -447,6 +443,24 @@ class Game {
         }
 
         return true;
+    }
+
+    isTetriminoHidden() {
+        let properties = Tetrimino.Properties[this.tetrimino.type];
+        let blocks = properties.blocks[this.tetrimino.orientation];
+
+        for (let i = 0; i < blocks.length; i++) {
+            let block = blocks[i];
+            let y = block[1] + this.tetrimino.y;
+            if (y >= Grid.NUM_OF_HIDDEN_ROWS)
+                return false;
+        }
+        return true;
+    }
+
+    checkForLockOut() {
+        if (this.isTetriminoHidden())
+            this.stop(Game.GameOverReason.LOCK_OUT);
     }
 
     onKeyPress() {
