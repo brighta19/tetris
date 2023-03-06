@@ -27,9 +27,9 @@ class Renderer {
         this.drawBox(400, 25, 80, 280);
         this.drawNextQueue();
 
-        this.drawBox(25, 155, 80, 160);
+        this.drawBox(25, 155, 80, 240);
+        this.drawLevel();
         this.drawNumberOfLinesCleared();
-
         this.drawScore();
 
         this.drawPlayingField(offset);
@@ -71,18 +71,34 @@ class Renderer {
         this.context.restore();
     }
 
+    drawLevel() {
+        this.context.save();
+
+        this.context.textAlign = "left";
+        this.context.font = "15px sans-serif";
+        this.context.fillStyle = "#000";
+        this.context.fillText("LEVEL", 42, 180);
+
+        this.context.fillStyle = "#000";
+        this.context.font = "18px sans-serif";
+        this.context.textAlign = "center";
+        this.context.fillText(this.game.level, 65, 212);
+
+        this.context.restore();
+    }
+
     drawNumberOfLinesCleared() {
         this.context.save();
 
         this.context.textAlign = "left";
         this.context.font = "15px sans-serif";
         this.context.fillStyle = "#000";
-        this.context.fillText("LINES", 44, 180);
+        this.context.fillText("LINES", 44, 260);
 
         this.context.fillStyle = "#000";
         this.context.font = "18px sans-serif";
         this.context.textAlign = "center";
-        this.context.fillText(this.game.totalLinesCleared, 65, 212);
+        this.context.fillText(this.game.totalLinesCleared, 65, 292);
 
         this.context.restore();
     }
@@ -93,12 +109,12 @@ class Renderer {
         this.context.textAlign = "left";
         this.context.font = "15px sans-serif";
         this.context.fillStyle = "#000";
-        this.context.fillText("SCORE", 40, 260);
+        this.context.fillText("SCORE", 40, 340);
 
         this.context.fillStyle = "#000";
         this.context.font = "18px sans-serif";
         this.context.textAlign = "center";
-        this.context.fillText(this.game.score, 65, 292);
+        this.context.fillText(this.game.score, 65, 372);
 
         this.context.restore();
     }
