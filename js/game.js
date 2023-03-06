@@ -1,6 +1,8 @@
 class Game {
     static Points = {
         // reference: https://tetris.fandom.com/wiki/Scoring#Guideline_scoring_system
+        SOFT_DROP: 1,
+        HARD_DROP_MULTIPLIER: 2,
         SINGLE: 100,
         DOUBLE: 300,
         TRIPLE: 500,
@@ -145,7 +147,7 @@ class Game {
             this.tetrimino.move(0, 1);
             this.tickers.goDown.reset();
             this.tickers.autoGoDown.reset();
-            this.score++;
+            this.score += Game.Points.SOFT_DROP;
             this.recentTetriminoAction = Game.TetriminoAction.TRANSLATION;
         }
     }
@@ -153,7 +155,7 @@ class Game {
     doHardDrop() {
         let ghostTetriminoLocation = this.getGhostTetriminoLocation();
         this.tetrimino.move(0, ghostTetriminoLocation.y);
-        this.score += 2 * ghostTetriminoLocation.y;
+        this.score += ghostTetriminoLocation.y * Game.Points.HARD_DROP_MULTIPLIER;
 
         if (ghostTetriminoLocation.y > 0)
             this.recentTetriminoAction = Game.TetriminoAction.TRANSLATION;
