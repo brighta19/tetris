@@ -23,7 +23,8 @@ class Game {
         ROTATION: 1,
     };
     static GameOverReason = {
-        BLOCK_OUT: 0,
+        LOCK_OUT: 0,
+        BLOCK_OUT: 1,
     }
 
     constructor(canvas) {
@@ -77,6 +78,8 @@ class Game {
 
         let reasonMessage;
         switch (gameOverReason) {
+            case Game.GameOverReason.LOCK_OUT:
+                reasonMessage = "Lock out"; break;
             case Game.GameOverReason.BLOCK_OUT:
                 reasonMessage = "Block out"; break;
             default:
@@ -381,11 +384,21 @@ class Game {
         let properties = Tetrimino.Properties[this.tetrimino.type];
         let blocks = properties.blocks[this.tetrimino.orientation];
         let color = properties.color;
+        let numOfBlocksHidden = 0;
 
         for (let i = 0; i < blocks.length; i++) {
             let block = blocks[i];
-            this.grid.setBlock(this.tetrimino.x + block[0], this.tetrimino.y + block[1], color);
+            let x = this.tetrimino.x + block[0];
+            let y = this.tetrimino.y + block[1];
+
+            this.grid.setBlock(x, y, color);
+
+            if (y < Grid.NUM_OF_HIDDEN_ROWS)
+                numOfBlocksHidden++;
         }
+
+        if (numOfBlocksHidden == 4)
+            this.stop(Game.GameOverReason.LOCK_OUT);
     }
 
     getGhostTetriminoLocation() {
