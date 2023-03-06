@@ -49,6 +49,7 @@ class Game {
         this.comboLength = -1;
         this.level = 1;
         this.score = 0;
+        this.instantDrop = false;
         this.gameOver = false;
 
         this.tickers = {
@@ -107,7 +108,8 @@ class Game {
     update() {
         this.tickers.move.tick();
         this.tickers.initialMove.tick();
-        this.tickers.autoGoDown.tick();
+        if (!this.instantDrop)
+            this.tickers.autoGoDown.tick();
 
 
         if (this.isKeyPressed("ArrowLeft") && this.tickers.initialMove.isDone() && this.tickers.move.isDone()) {
@@ -128,7 +130,12 @@ class Game {
 
 
         if (this.isLocationValid(this.getTransformedBlocks(0, 1, 0))) {
-            if (this.tickers.autoGoDown.isDone()) {
+            if (this.instantDrop) {
+                let ghostTetriminoLocation = this.getGhostTetriminoLocation();
+                this.tetrimino.move(0, ghostTetriminoLocation.y);
+                this.recentTetriminoAction = Game.TetriminoAction.TRANSLATION;
+            }
+            else if (this.tickers.autoGoDown.isDone()) {
                 this.tetrimino.move(0, 1);
                 this.tickers.autoGoDown.reset();
                 this.recentTetriminoAction = Game.TetriminoAction.TRANSLATION;
@@ -198,10 +205,12 @@ class Game {
     }
 
     attemptToAdvanceLevel() {
-        if (this.totalLinesCleared >= this.level * 10) {
+        if (!this.instantDrop && this.totalLinesCleared >= this.level * 10) {
             this.level++;
             let ticks = this.updatesPerSecond * 1.1 - (this.level - 1) * 2;
             this.tickers.autoGoDown = new Ticker(ticks);
+            if (ticks < 0)
+                this.instantDrop = true;
             console.log(`Advanced to level ${this.level}!`);
         }
     }
@@ -372,19 +381,22 @@ class Game {
     }
 
     spawnTetrimino(type) {
-        let t = type || this.queue.getNextTetriminoType();
+        type = type || this.queue.getNextTetriminoType();
+        let y = this.instantDrop ? Grid.NUM_OF_ROWS - 1 : Grid.NUM_OF_HIDDEN_ROWS;
 
-        this.tetrimino = new Tetrimino(3, Grid.NUM_OF_HIDDEN_ROWS, t);
+        this.tetrimino = new Tetrimino(3, y, type);
 
-        let translateCounter = 0;
-        while (translateCounter < Grid.NUM_OF_HIDDEN_ROWS &&
+        while (
+            this.tetrimino.y > 0 &&
             !this.isLocationValid(this.getTransformedBlocks(0, 0, 0))
         ) {
-            this.tetrimino.y -= 1;
-            translateCounter++;
+            this.tetrimino.y--;
         }
 
-        if (!this.isLocationValid(this.getTransformedBlocks(0, 0, 0))) {
+        if (
+            !this.isLocationValid(this.getTransformedBlocks(0, 0, 0)) ||
+            this.isTetriminoHidden()
+        ) {
             this.stop(Game.GameOverReason.BLOCK_OUT);
             return;
         }
