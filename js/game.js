@@ -36,6 +36,7 @@ class Game {
         this.heldTetriminoType = null;
         this.recentTetriminoAction = null;
         this.recentTetriminoKick = null;
+        this.recentTetriminoTspin = null;
         this.hasSwitchedTetrimino = false;
         this.totalLinesCleared = 0;
         this.backToBack = false;
@@ -159,21 +160,21 @@ class Game {
     }
 
     land() {
-        let tSpin = this.checkForTSpin();
+        this.recentTetriminoTspin = this.checkForTSpin();
 
         this.lockTetrimino();
         this.grid.attemptToClearRow();
         this.totalLinesCleared += this.grid.numOfRowsCleared;
 
-        this.scorePoints(tSpin);
+        this.scorePoints();
 
         this.spawnTetrimino();
 
         this.hasSwitchedTetrimino = false;
     }
 
-    scorePoints(tSpin) {
-        if (tSpin == Tetrimino.TSpins.MINI) {
+    scorePoints() {
+        if (this.recentTetriminoTspin == Tetrimino.TSpins.MINI) {
             // T-Spin Mini
             if (this.grid.numOfRowsCleared == 0) {
                 this.comboLength = -1;
@@ -195,7 +196,7 @@ class Game {
                 this.backToBack = true;
             }
         }
-        else if (tSpin == Tetrimino.TSpins.REGULAR) {
+        else if (this.recentTetriminoTspin == Tetrimino.TSpins.REGULAR) {
             // T-Spin
             if (this.grid.numOfRowsCleared == 0) {
                 this.comboLength = -1;
