@@ -33,7 +33,7 @@ class Game {
         this.keysPressed = [];
         this.previousKeysPressed = [];
 
-        this.updatesPerSecond = 20;
+        this.updatesPerSecond = 30;
 
         this.renderer = new Renderer(this);
 
@@ -190,9 +190,20 @@ class Game {
 
         this.scorePoints();
 
+        this.attemptToAdvanceLevel();
+
         this.spawnTetrimino();
 
         this.hasSwitchedTetrimino = false;
+    }
+
+    attemptToAdvanceLevel() {
+        if (this.totalLinesCleared >= this.level * 10) {
+            this.level++;
+            let ticks = this.updatesPerSecond * 1.1 - (this.level - 1) * 2;
+            this.tickers.autoGoDown = new Ticker(ticks);
+            console.log(`Advanced to level ${this.level}!`);
+        }
     }
 
     scorePoints() {
