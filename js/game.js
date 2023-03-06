@@ -22,6 +22,9 @@ class Game {
         TRANSLATION: 0,
         ROTATION: 1,
     };
+    static GameOverReason = {
+        BLOCK_OUT: 0,
+    }
 
     constructor(canvas) {
         this.canvas = canvas;
@@ -68,10 +71,18 @@ class Game {
         this.gameOver = false;
     }
 
-    stop() {
+    stop(gameOverReason) {
         this.gameOver = true;
         clearInterval(this.updateInterval);
-        console.log("Game Over");
+
+        let reasonMessage;
+        switch (gameOverReason) {
+            case Game.GameOverReason.BLOCK_OUT:
+                reasonMessage = "Block out"; break;
+            default:
+                reasonMessage = "Unknown";
+        }
+        console.log(`Game Over: ${reasonMessage}`);
     }
 
     moveTetriminoLeft() {
@@ -165,6 +176,9 @@ class Game {
         this.recentTetriminoTspin = this.checkForTSpin();
 
         this.lockTetrimino();
+        if (this.gameOver)
+            return;
+
         this.grid.attemptToClearRow();
         this.totalLinesCleared += this.grid.numOfRowsCleared;
 
@@ -354,7 +368,7 @@ class Game {
         }
 
         if (!this.isLocationValid(this.getTransformedBlocks(0, 0, 0))) {
-            this.stop();
+            this.stop(Game.GameOverReason.BLOCK_OUT);
             return;
         }
 
