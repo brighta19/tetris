@@ -320,45 +320,45 @@ class Game {
             switch (this.tetrimino.orientation) {
                 case Tetrimino.Orientation.DEFAULT:
                     topCorners = [
-                        !this.grid.isWithinBoundsAndEmpty(this.tetrimino.x, this.tetrimino.y),
-                        !this.grid.isWithinBoundsAndEmpty(this.tetrimino.x + 2, this.tetrimino.y),
+                        !this.grid.isCellWithinBoundsAndEmpty(this.tetrimino.x, this.tetrimino.y),
+                        !this.grid.isCellWithinBoundsAndEmpty(this.tetrimino.x + 2, this.tetrimino.y),
                     ];
                     bottomCorners = [
-                        !this.grid.isWithinBoundsAndEmpty(this.tetrimino.x, this.tetrimino.y + 2),
-                        !this.grid.isWithinBoundsAndEmpty(this.tetrimino.x + 2, this.tetrimino.y + 2),
+                        !this.grid.isCellWithinBoundsAndEmpty(this.tetrimino.x, this.tetrimino.y + 2),
+                        !this.grid.isCellWithinBoundsAndEmpty(this.tetrimino.x + 2, this.tetrimino.y + 2),
                     ];
                     break;
 
                 case Tetrimino.Orientation.RIGHT:
                     topCorners = [
-                        !this.grid.isWithinBoundsAndEmpty(this.tetrimino.x + 2, this.tetrimino.y),
-                        !this.grid.isWithinBoundsAndEmpty(this.tetrimino.x + 2, this.tetrimino.y + 2)
+                        !this.grid.isCellWithinBoundsAndEmpty(this.tetrimino.x + 2, this.tetrimino.y),
+                        !this.grid.isCellWithinBoundsAndEmpty(this.tetrimino.x + 2, this.tetrimino.y + 2)
                     ];
                     bottomCorners = [
-                        !this.grid.isWithinBoundsAndEmpty(this.tetrimino.x, this.tetrimino.y),
-                        !this.grid.isWithinBoundsAndEmpty(this.tetrimino.x, this.tetrimino.y + 2)
+                        !this.grid.isCellWithinBoundsAndEmpty(this.tetrimino.x, this.tetrimino.y),
+                        !this.grid.isCellWithinBoundsAndEmpty(this.tetrimino.x, this.tetrimino.y + 2)
                     ];
                     break;
 
                 case Tetrimino.Orientation.DOWN:
                     topCorners = [
-                        !this.grid.isWithinBoundsAndEmpty(this.tetrimino.x, this.tetrimino.y + 2),
-                        !this.grid.isWithinBoundsAndEmpty(this.tetrimino.x + 2, this.tetrimino.y + 2)
+                        !this.grid.isCellWithinBoundsAndEmpty(this.tetrimino.x, this.tetrimino.y + 2),
+                        !this.grid.isCellWithinBoundsAndEmpty(this.tetrimino.x + 2, this.tetrimino.y + 2)
                     ];
                     bottomCorners = [
-                        !this.grid.isWithinBoundsAndEmpty(this.tetrimino.x, this.tetrimino.y),
-                        !this.grid.isWithinBoundsAndEmpty(this.tetrimino.x + 2, this.tetrimino.y)
+                        !this.grid.isCellWithinBoundsAndEmpty(this.tetrimino.x, this.tetrimino.y),
+                        !this.grid.isCellWithinBoundsAndEmpty(this.tetrimino.x + 2, this.tetrimino.y)
                     ];
                     break;
 
                 case Tetrimino.Orientation.LEFT:
                     topCorners = [
-                        !this.grid.isWithinBoundsAndEmpty(this.tetrimino.x, this.tetrimino.y),
-                        !this.grid.isWithinBoundsAndEmpty(this.tetrimino.x, this.tetrimino.y + 2)
+                        !this.grid.isCellWithinBoundsAndEmpty(this.tetrimino.x, this.tetrimino.y),
+                        !this.grid.isCellWithinBoundsAndEmpty(this.tetrimino.x, this.tetrimino.y + 2)
                     ];
                     bottomCorners = [
-                        !this.grid.isWithinBoundsAndEmpty(this.tetrimino.x + 2, this.tetrimino.y),
-                        !this.grid.isWithinBoundsAndEmpty(this.tetrimino.x + 2, this.tetrimino.y + 2)
+                        !this.grid.isCellWithinBoundsAndEmpty(this.tetrimino.x + 2, this.tetrimino.y),
+                        !this.grid.isCellWithinBoundsAndEmpty(this.tetrimino.x + 2, this.tetrimino.y + 2)
                     ];
                     break;
             }
@@ -408,9 +408,7 @@ class Game {
         let color = this.tetrimino.color;
 
         for (let i = 0; i < blocks.length; i++) {
-            let block = blocks[i];
-            let x = this.tetrimino.x + block[0];
-            let y = this.tetrimino.y + block[1];
+            let [x, y] = blocks[i];
 
             this.grid.setBlock(x, y, color);
         }
@@ -430,68 +428,46 @@ class Game {
     }
 
     isTetriminoBlockedOut() {
-        return !this.isLocationValid(this.getTransformedBlocks(0, 0, 0));
+        let clonedTetrimino = this.cloneTetrimino(0, 0, Tetrimino.Direction.NONE);
+        return !this.isLocationValid(clonedTetrimino);
     }
 
     canMoveTetrimino(x, y) {
-        return this.isLocationValid(this.getTransformedBlocks(x, y, Tetrimino.Direction.NONE));
+        let clonedTetrimino = this.cloneTetrimino(x, y, Tetrimino.Direction.NONE);
+        return this.isLocationValid(clonedTetrimino);
     }
 
     canRotateTetrimino(direction) {
-        return this.isLocationValid(this.getTransformedBlocks(0, 0, direction));
+        let clonedTetrimino = this.cloneTetrimino(0, 0, direction);
+        return this.isLocationValid(clonedTetrimino);
     }
 
     canMoveAndRotateTetrimino(x, y, direction) {
-        return this.isLocationValid(this.getTransformedBlocks(x, y, direction));
+        let clonedTetrimino = this.cloneTetrimino(x, y, direction)
+        return this.isLocationValid(clonedTetrimino);
     }
 
-    getTransformedBlocks(moveX, moveY, rotateDirection) {
-        let tempTetrimino = Tetrimino.clone(this.tetrimino);
-        tempTetrimino.move(moveX, moveY);
-        tempTetrimino.rotate(rotateDirection);
+    cloneTetrimino(moveX, moveY, rotateDirection) {
+        let clonedTetrimino = Tetrimino.clone(this.tetrimino);
+        clonedTetrimino.move(moveX, moveY);
+        clonedTetrimino.rotate(rotateDirection);
 
-        let blocks = tempTetrimino.blocks;
-        let transformedBlocks = [];
-
-        for (let i = 0; i < blocks.length; i++) {
-            let block = blocks[i];
-            transformedBlocks[i] = [
-                block[0] + tempTetrimino.x,
-                block[1] + tempTetrimino.y,
-            ];
-        }
-
-        return transformedBlocks;
+        return clonedTetrimino;
     }
 
-    isLocationValid(blocks) {
-        for (let i = 0; i < blocks.length; i++) {
-            let block = blocks[i];
-
-            if (!this.grid.isWithinBoundsAndEmpty(block[0], block[1])) {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    isTetriminoHidden() {
-        let blocks = this.tetrimino.blocks;
-
-        for (let i = 0; i < blocks.length; i++) {
-            let block = blocks[i];
-            let y = block[1] + this.tetrimino.y;
-
-            if (y >= Grid.NUM_OF_HIDDEN_ROWS)
-                return false;
-        }
-        return true;
+    isLocationValid(tetrimino) {
+        let blocks = tetrimino.blocks;
+        return blocks.every(([x, y]) => this.grid.isCellWithinBoundsAndEmpty(x, y));
     }
 
     checkForLockOut() {
         if (this.isTetriminoHidden())
             this.stop(Game.GameOverReason.LOCK_OUT);
+    }
+
+    isTetriminoHidden() {
+        let blocks = this.tetrimino.blocks;
+        return blocks.every(([x, y]) => y < Grid.NUM_OF_HIDDEN_ROWS);
     }
 
     onKeyPress() {

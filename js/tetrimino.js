@@ -139,7 +139,12 @@ class Tetrimino {
     }
 
     get blocks() {
-        return Tetrimino.Properties[this.type].blocks[this.orientation];
+        let blocks = Tetrimino.Properties[this.type].blocks[this.orientation];
+
+        return blocks.map(block => [
+            block[0] + this.x,
+            block[1] + this.y
+        ]);
     }
 
     move(x, y) {

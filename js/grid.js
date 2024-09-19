@@ -42,15 +42,15 @@ class Grid {
         }
     }
 
-    isWithinBoundsAndEmpty(x, y) {
-        return this.isWithinBounds(x, y) && this.isEmpty(x, y);
+    isCellWithinBoundsAndEmpty(x, y) {
+        return this.isCellWithinBounds(x, y) && this.isCellEmpty(x, y);
     }
 
-    isEmpty(x, y) {
+    isCellEmpty(x, y) {
         return this.grid[y][x] == Grid.EMPTY_BLOCK;
     }
 
-    isWithinBounds(x, y) {
+    isCellWithinBounds(x, y) {
         return (y >= 0 && y < Grid.NUM_OF_ROWS) &&
             (x >= 0 && x < Grid.NUM_OF_COLS);
     }

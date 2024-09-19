@@ -175,12 +175,12 @@ class Renderer {
         this.context.beginPath();
 
         for (let i = 0; i < blocks.length; i++) {
-            let block = blocks[i];
-            let blockX = offset.x + (this.game.tetrimino.x + block[0]) * Renderer.BLOCK_SIZE;
-            let blockY = offset.y + (this.game.tetrimino.y + block[1]) * Renderer.BLOCK_SIZE;
-            blockY -= Grid.NUM_OF_HIDDEN_ROWS * Renderer.BLOCK_SIZE;
+            let [x, y] = blocks[i];
+            let rectX = offset.x + x * Renderer.BLOCK_SIZE;
+            let rectY = offset.y + y * Renderer.BLOCK_SIZE;
+            rectY -= Grid.NUM_OF_HIDDEN_ROWS * Renderer.BLOCK_SIZE;
 
-            this.context.rect(blockX, blockY, Renderer.BLOCK_SIZE, Renderer.BLOCK_SIZE);
+            this.context.rect(rectX, rectY, Renderer.BLOCK_SIZE, Renderer.BLOCK_SIZE);
         }
 
         this.context.fillStyle = color;
@@ -194,17 +194,18 @@ class Renderer {
 
     drawGhostTetrimino(offset) {
         let ghostTetriminoLocation = this.game.getGhostTetriminoLocation();
-        let blocks = this.game.getTransformedBlocks(0, ghostTetriminoLocation.y, 0);
+        let ghostTetrimino = this.game.cloneTetrimino(0, ghostTetriminoLocation.y, 0);
+        let blocks = ghostTetrimino.blocks;
 
         this.context.save();
         this.context.beginPath();
         for (let i = 0; i < blocks.length; i++) {
-            let block = blocks[i];
-            let blockX = offset.x + block[0] * Renderer.BLOCK_SIZE;
-            let blockY = offset.y + block[1] * Renderer.BLOCK_SIZE;
-            blockY -= Grid.NUM_OF_HIDDEN_ROWS * Renderer.BLOCK_SIZE;
+            let [x, y] = blocks[i];
+            let rectX = offset.x + x * Renderer.BLOCK_SIZE;
+            let rectY = offset.y + y * Renderer.BLOCK_SIZE;
+            rectY -= Grid.NUM_OF_HIDDEN_ROWS * Renderer.BLOCK_SIZE;
 
-            this.context.rect(blockX, blockY, Renderer.BLOCK_SIZE, Renderer.BLOCK_SIZE);
+            this.context.rect(rectX, rectY, Renderer.BLOCK_SIZE, Renderer.BLOCK_SIZE);
         }
         this.context.closePath();
 
