@@ -193,8 +193,7 @@ class Renderer {
     }
 
     drawGhostTetrimino(offset) {
-        let ghostTetriminoLocation = this.game.getGhostTetriminoLocation();
-        let ghostTetrimino = this.game.cloneTetrimino(0, ghostTetriminoLocation.y, 0);
+        let ghostTetrimino = this.game.getGhostTetrimino();
         let blocks = ghostTetrimino.blocks;
 
         this.context.save();

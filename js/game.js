@@ -131,8 +131,8 @@ class Game {
 
         if (this.canMoveTetrimino(0, 1)) {
             if (this.instantDrop) {
-                let ghostTetriminoLocation = this.getGhostTetriminoLocation();
-                this.tetrimino.move(0, ghostTetriminoLocation.y);
+                let ghostTetrimino = this.getGhostTetrimino();
+                this.tetrimino = ghostTetrimino;
                 this.recentTetriminoAction = Game.TetriminoAction.TRANSLATION;
             }
             else if (this.tickers.autoGoDown.isDone()) {
@@ -174,11 +174,13 @@ class Game {
     }
 
     doHardDrop() {
-        let ghostTetriminoLocation = this.getGhostTetriminoLocation();
-        this.tetrimino.move(0, ghostTetriminoLocation.y);
-        this.score += ghostTetriminoLocation.y * Game.Points.HARD_DROP_MULTIPLIER;
+        let ghostTetrimino = this.getGhostTetrimino();
+        let distance = ghostTetrimino.y - this.tetrimino.y;
 
-        if (ghostTetriminoLocation.y > 0)
+        this.score += distance * Game.Points.HARD_DROP_MULTIPLIER;
+        this.tetrimino = ghostTetrimino;
+
+        if (distance > 0)
             this.recentTetriminoAction = Game.TetriminoAction.TRANSLATION;
     }
 
@@ -311,73 +313,72 @@ class Game {
     }
 
     checkForTSpin() {
-        if (this.tetrimino.type == Tetrimino.Types.T && this.recentTetriminoAction == Game.TetriminoAction.ROTATION) {
-            let topCorners, bottomCorners;
-            let tSpinTripleKick = (this.recentTetriminoKick != null &&
-                Math.abs(this.recentTetriminoKick[0]) == 1 &&
-                this.recentTetriminoKick[1] == -2);
+        if (this.tetrimino.type != Tetrimino.Types.T || this.recentTetriminoAction != Game.TetriminoAction.ROTATION)
+            return null;
 
-            switch (this.tetrimino.orientation) {
-                case Tetrimino.Orientation.DEFAULT:
-                    topCorners = [
-                        !this.grid.isCellWithinBoundsAndEmpty(this.tetrimino.x, this.tetrimino.y),
-                        !this.grid.isCellWithinBoundsAndEmpty(this.tetrimino.x + 2, this.tetrimino.y),
-                    ];
-                    bottomCorners = [
-                        !this.grid.isCellWithinBoundsAndEmpty(this.tetrimino.x, this.tetrimino.y + 2),
-                        !this.grid.isCellWithinBoundsAndEmpty(this.tetrimino.x + 2, this.tetrimino.y + 2),
-                    ];
-                    break;
+        let topCorners, bottomCorners;
+        let tSpinTripleKick = (this.recentTetriminoKick != null &&
+            Math.abs(this.recentTetriminoKick[0]) == 1 &&
+            this.recentTetriminoKick[1] == -2);
 
-                case Tetrimino.Orientation.RIGHT:
-                    topCorners = [
-                        !this.grid.isCellWithinBoundsAndEmpty(this.tetrimino.x + 2, this.tetrimino.y),
-                        !this.grid.isCellWithinBoundsAndEmpty(this.tetrimino.x + 2, this.tetrimino.y + 2)
-                    ];
-                    bottomCorners = [
-                        !this.grid.isCellWithinBoundsAndEmpty(this.tetrimino.x, this.tetrimino.y),
-                        !this.grid.isCellWithinBoundsAndEmpty(this.tetrimino.x, this.tetrimino.y + 2)
-                    ];
-                    break;
+        switch (this.tetrimino.orientation) {
+            case Tetrimino.Orientation.DEFAULT:
+                topCorners = [
+                    !this.grid.isCellWithinBoundsAndEmpty(this.tetrimino.x, this.tetrimino.y),
+                    !this.grid.isCellWithinBoundsAndEmpty(this.tetrimino.x + 2, this.tetrimino.y),
+                ];
+                bottomCorners = [
+                    !this.grid.isCellWithinBoundsAndEmpty(this.tetrimino.x, this.tetrimino.y + 2),
+                    !this.grid.isCellWithinBoundsAndEmpty(this.tetrimino.x + 2, this.tetrimino.y + 2),
+                ];
+                break;
 
-                case Tetrimino.Orientation.DOWN:
-                    topCorners = [
-                        !this.grid.isCellWithinBoundsAndEmpty(this.tetrimino.x, this.tetrimino.y + 2),
-                        !this.grid.isCellWithinBoundsAndEmpty(this.tetrimino.x + 2, this.tetrimino.y + 2)
-                    ];
-                    bottomCorners = [
-                        !this.grid.isCellWithinBoundsAndEmpty(this.tetrimino.x, this.tetrimino.y),
-                        !this.grid.isCellWithinBoundsAndEmpty(this.tetrimino.x + 2, this.tetrimino.y)
-                    ];
-                    break;
+            case Tetrimino.Orientation.RIGHT:
+                topCorners = [
+                    !this.grid.isCellWithinBoundsAndEmpty(this.tetrimino.x + 2, this.tetrimino.y),
+                    !this.grid.isCellWithinBoundsAndEmpty(this.tetrimino.x + 2, this.tetrimino.y + 2)
+                ];
+                bottomCorners = [
+                    !this.grid.isCellWithinBoundsAndEmpty(this.tetrimino.x, this.tetrimino.y),
+                    !this.grid.isCellWithinBoundsAndEmpty(this.tetrimino.x, this.tetrimino.y + 2)
+                ];
+                break;
 
-                case Tetrimino.Orientation.LEFT:
-                    topCorners = [
-                        !this.grid.isCellWithinBoundsAndEmpty(this.tetrimino.x, this.tetrimino.y),
-                        !this.grid.isCellWithinBoundsAndEmpty(this.tetrimino.x, this.tetrimino.y + 2)
-                    ];
-                    bottomCorners = [
-                        !this.grid.isCellWithinBoundsAndEmpty(this.tetrimino.x + 2, this.tetrimino.y),
-                        !this.grid.isCellWithinBoundsAndEmpty(this.tetrimino.x + 2, this.tetrimino.y + 2)
-                    ];
-                    break;
-            }
+            case Tetrimino.Orientation.DOWN:
+                topCorners = [
+                    !this.grid.isCellWithinBoundsAndEmpty(this.tetrimino.x, this.tetrimino.y + 2),
+                    !this.grid.isCellWithinBoundsAndEmpty(this.tetrimino.x + 2, this.tetrimino.y + 2)
+                ];
+                bottomCorners = [
+                    !this.grid.isCellWithinBoundsAndEmpty(this.tetrimino.x, this.tetrimino.y),
+                    !this.grid.isCellWithinBoundsAndEmpty(this.tetrimino.x + 2, this.tetrimino.y)
+                ];
+                break;
 
-            let atLeastOneBottomCorner = bottomCorners[0] || bottomCorners[1];
-            let atLeastOneTopCorner = topCorners[0] || topCorners[1];
-            let twoBottomCorners = bottomCorners[0] && bottomCorners[1];
-            let twoTopCorners = topCorners[0] && topCorners[1];
-
-            if ((twoTopCorners && atLeastOneBottomCorner) ||
-                (twoBottomCorners && atLeastOneTopCorner && tSpinTripleKick)) {
-                return Tetrimino.TSpins.REGULAR;
-            }
-            else if (twoBottomCorners && atLeastOneTopCorner) {
-                return Tetrimino.TSpins.MINI;
-            }
+            case Tetrimino.Orientation.LEFT:
+                topCorners = [
+                    !this.grid.isCellWithinBoundsAndEmpty(this.tetrimino.x, this.tetrimino.y),
+                    !this.grid.isCellWithinBoundsAndEmpty(this.tetrimino.x, this.tetrimino.y + 2)
+                ];
+                bottomCorners = [
+                    !this.grid.isCellWithinBoundsAndEmpty(this.tetrimino.x + 2, this.tetrimino.y),
+                    !this.grid.isCellWithinBoundsAndEmpty(this.tetrimino.x + 2, this.tetrimino.y + 2)
+                ];
+                break;
         }
 
-        return null;
+        let atLeastOneBottomCorner = bottomCorners[0] || bottomCorners[1];
+        let atLeastOneTopCorner = topCorners[0] || topCorners[1];
+        let twoBottomCorners = bottomCorners[0] && bottomCorners[1];
+        let twoTopCorners = topCorners[0] && topCorners[1];
+
+        if ((twoTopCorners && atLeastOneBottomCorner) ||
+            (twoBottomCorners && atLeastOneTopCorner && tSpinTripleKick)) {
+            return Tetrimino.TSpins.REGULAR;
+        }
+        else if (twoBottomCorners && atLeastOneTopCorner) {
+            return Tetrimino.TSpins.MINI;
+        }
     }
 
     spawnTetrimino(type) {
@@ -414,17 +415,15 @@ class Game {
         }
     }
 
-    getGhostTetriminoLocation() {
-        let location = {
-            x: this.tetrimino.x,
-            y: 0,
-        };
+    getGhostTetrimino() {
+        let distanceY = 0;
 
-        while (this.canMoveTetrimino(0, location.y + 1)) {
-            location.y++;
-        }
+        while (this.canMoveTetrimino(0, distanceY + 1))
+            distanceY++;
 
-        return location;
+        let ghostTetrimino = Tetrimino.clone(this.tetrimino);
+        ghostTetrimino.move(0, distanceY);
+        return ghostTetrimino;
     }
 
     isTetriminoBlockedOut() {
