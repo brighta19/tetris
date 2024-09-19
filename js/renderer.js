@@ -168,8 +168,8 @@ class Renderer {
     }
 
     drawTetrimino(offset) {
-        let properties = Tetrimino.Properties[this.game.tetrimino.type];
-        let blocks = properties.blocks[this.game.tetrimino.orientation];
+        let blocks = this.game.tetrimino.blocks;
+        let color = this.game.tetrimino.color;
 
         this.context.save();
         this.context.beginPath();
@@ -183,7 +183,7 @@ class Renderer {
             this.context.rect(blockX, blockY, Renderer.BLOCK_SIZE, Renderer.BLOCK_SIZE);
         }
 
-        this.context.fillStyle = properties.color;
+        this.context.fillStyle = color;
         this.context.strokeStyle = "white";
         this.context.closePath();
 

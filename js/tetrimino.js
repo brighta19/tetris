@@ -16,10 +16,11 @@ class Tetrimino {
     }
     static Direction = {
         CLOCKWISE: 1,
+        NONE: 0,
         COUNTER_CLOCKWISE: -1,
     };
     static Properties = {
-        Z: {
+        [Tetrimino.Types.Z]: {
             color: "red",
             blocks: [
                 [[0, 0], [1, 0], [1, 1], [2, 1]],
@@ -28,7 +29,7 @@ class Tetrimino {
                 [[1, 0], [1, 1], [0, 1], [0, 2]],
             ],
         },
-        S: {
+        [Tetrimino.Types.S]: {
             color: "lime",
             blocks: [
                 [[0, 1], [1, 1], [1, 0], [2, 0]],
@@ -37,7 +38,7 @@ class Tetrimino {
                 [[0, 0], [0, 1], [1, 1], [1, 2]],
             ],
         },
-        T: {
+        [Tetrimino.Types.T]: {
             color: "purple",
             blocks: [
                 [[0, 1], [1, 0], [2, 1], [1, 1]],
@@ -46,7 +47,7 @@ class Tetrimino {
                 [[1, 2], [0, 1], [1, 0], [1, 1]],
             ],
         },
-        L: {
+        [Tetrimino.Types.L]: {
             color: "orange",
             blocks: [
                 [[0, 1], [1, 1], [2, 1], [2, 0]],
@@ -55,7 +56,7 @@ class Tetrimino {
                 [[0, 0], [1, 0], [1, 1], [1, 2]],
             ],
         },
-        J: {
+        [Tetrimino.Types.J]: {
             color: "darkblue",
             blocks: [
                 [[0, 0], [0, 1], [1, 1], [2, 1]],
@@ -64,7 +65,7 @@ class Tetrimino {
                 [[1, 0], [1, 1], [1, 2], [0, 2]],
             ],
         },
-        O: {
+        [Tetrimino.Types.O]: {
             color: "gold",
             blocks: [
                 [[1, 0], [2, 0], [1, 1], [2, 1]],
@@ -73,7 +74,7 @@ class Tetrimino {
                 [[1, 0], [2, 0], [1, 1], [2, 1]],
             ],
         },
-        I: {
+        [Tetrimino.Types.I]: {
             color: "dodgerblue",
             blocks: [
                 [[0, 1], [1, 1], [2, 1], [3, 1]],
@@ -122,11 +123,23 @@ class Tetrimino {
         ];
     }
 
-    constructor(x, y, type) {
+    static clone(tetrimino) {
+        return new Tetrimino(tetrimino.x,tetrimino.y,tetrimino.type,tetrimino.orientation);
+    }
+
+    constructor(x, y, type, orientation = Tetrimino.Orientation.DEFAULT) {
         this.x = x;
         this.y = y;
         this.type = type;
-        this.orientation = 0;
+        this.orientation = orientation;
+    }
+
+    get color() {
+        return Tetrimino.Properties[this.type].color;
+    }
+
+    get blocks() {
+        return Tetrimino.Properties[this.type].blocks[this.orientation];
     }
 
     move(x, y) {

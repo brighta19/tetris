@@ -407,9 +407,8 @@ class Game {
     }
 
     lockTetrimino() {
-        let properties = Tetrimino.Properties[this.tetrimino.type];
-        let blocks = properties.blocks[this.tetrimino.orientation];
-        let color = properties.color;
+        let blocks = this.tetrimino.blocks;
+        let color = this.tetrimino.color;
 
         for (let i = 0; i < blocks.length; i++) {
             let block = blocks[i];
@@ -433,23 +432,19 @@ class Game {
         return location;
     }
 
-    getTransformedBlocks(translateX, translateY, rotate) {
-        let blockRotations = Tetrimino.Properties[this.tetrimino.type].blocks;
-        let r = this.tetrimino.orientation + rotate;
+    getTransformedBlocks(moveX = 0, moveY = 0, rotateDirection = Tetrimino.Direction.NONE) {
+        let tempTetrimino = Tetrimino.clone(this.tetrimino);
+        tempTetrimino.move(moveX, moveY);
+        tempTetrimino.rotate(rotateDirection);
 
-        if (r < Tetrimino.Orientation.DEFAULT)
-            r = Tetrimino.Orientation.LEFT;
-        if (r > Tetrimino.Orientation.LEFT)
-            r = Tetrimino.Orientation.DEFAULT;
-
-        let blocks = blockRotations[r];
+        let blocks = tempTetrimino.blocks;
         let transformedBlocks = [];
 
         for (let i = 0; i < blocks.length; i++) {
             let block = blocks[i];
             transformedBlocks[i] = [
-                block[0] + this.tetrimino.x + translateX,
-                block[1] + this.tetrimino.y + translateY,
+                block[0] + tempTetrimino.x,
+                block[1] + tempTetrimino.y,
             ];
         }
 
@@ -469,8 +464,7 @@ class Game {
     }
 
     isTetriminoHidden() {
-        let properties = Tetrimino.Properties[this.tetrimino.type];
-        let blocks = properties.blocks[this.tetrimino.orientation];
+        let blocks = this.tetrimino.blocks;
 
         for (let i = 0; i < blocks.length; i++) {
             let block = blocks[i];
@@ -520,7 +514,7 @@ class Game {
 
         // Rotate Clockwise
         if (this.isKeyPressed("ArrowUp") && !this.wasKeyPressed("ArrowUp")) {
-            if (this.isLocationValid(this.getTransformedBlocks(0, 0, 1))) {
+            if (this.isLocationValid(this.getTransformedBlocks(0, 0, Tetrimino.Direction.CLOCKWISE))) {
                 this.tetrimino.rotate(Tetrimino.Direction.CLOCKWISE);
                 this.tickers.land.reset();
                 this.recentTetriminoAction = Game.TetriminoAction.ROTATION;
@@ -555,7 +549,7 @@ class Game {
                 for (let i = 0; i < kickTests.length; i++) {
                     let test = kickTests[i];
 
-                    if (this.isLocationValid(this.getTransformedBlocks(test[0], test[1], 1))) {
+                    if (this.isLocationValid(this.getTransformedBlocks(test[0], test[1], Tetrimino.Direction.CLOCKWISE))) {
                         this.tetrimino.move(test[0], test[1]);
                         this.tetrimino.rotate(Tetrimino.Direction.CLOCKWISE);
                         this.tickers.land.reset();
@@ -571,7 +565,7 @@ class Game {
         // Counter Clockwise
         if ((this.isKeyPressed("z") && !this.wasKeyPressed("z")) ||
             (this.isKeyPressed("Z") && !this.wasKeyPressed("Z"))) {
-            if (this.isLocationValid(this.getTransformedBlocks(0, 0, -1))) {
+            if (this.isLocationValid(this.getTransformedBlocks(0, 0, Tetrimino.Direction.COUNTER_CLOCKWISE))) {
                 this.tetrimino.rotate(Tetrimino.Direction.COUNTER_CLOCKWISE);
                 this.tickers.land.reset();
                 this.recentTetriminoAction = Game.TetriminoAction.ROTATION;
@@ -606,7 +600,7 @@ class Game {
                 for (let i = 0; i < kickTests.length; i++) {
                     let test = kickTests[i];
 
-                    if (this.isLocationValid(this.getTransformedBlocks(test[0], test[1], -1))) {
+                    if (this.isLocationValid(this.getTransformedBlocks(test[0], test[1], Tetrimino.Direction.COUNTER_CLOCKWISE))) {
                         this.tetrimino.move(test[0], test[1]);
                         this.tetrimino.rotate(Tetrimino.Direction.COUNTER_CLOCKWISE);
                         this.tickers.land.reset();
