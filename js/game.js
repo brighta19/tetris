@@ -17,7 +17,7 @@ class Game {
 
         BACK_TO_BACK_MULTIPLIER: 1.5,
         COMBO_BONUS: 50,
-    }
+    };
     static TetriminoAction = {
         TRANSLATION: 0,
         ROTATION: 1,
@@ -25,7 +25,16 @@ class Game {
     static GameOverReason = {
         LOCK_OUT: 0,
         BLOCK_OUT: 1,
-    }
+    };
+    static Key = {
+        MOVE_LEFT: "ArrowLeft",
+        MOVE_RIGHT: "ArrowRight",
+        ROTATE_CLOCKWISE: "ArrowUp",
+        ROTATE_COUNTER_CLOCKWISE: "KeyZ",
+        SOFT_DROP: "ArrowDown",
+        HARD_DROP: "Space",
+        HOLD: "KeyC"
+    };
 
     constructor(canvas) {
         this.canvas = canvas;
@@ -466,24 +475,23 @@ class Game {
 
     isTetriminoHidden() {
         let blocks = this.tetrimino.blocks;
-        return blocks.every(([x, y]) => y < Grid.NUM_OF_HIDDEN_ROWS);
+        return blocks.every(([_x, y]) => y < Grid.NUM_OF_HIDDEN_ROWS);
     }
 
     onKeyPress() {
         if (this.gameOver)
             return;
 
-        if ((this.isKeyPressed("C") && !this.wasKeyPressed("C")) ||
-            (this.isKeyPressed("c") && !this.wasKeyPressed("c")) && !this.hasSwitchedTetrimino) {
+        if (this.isKeyJustPressed(Game.Key.HOLD) && !this.hasSwitchedTetrimino) {
             this.holdTetrimino();
         }
 
-        if (this.isKeyPressed((" ")) && !this.wasKeyPressed(" ")) {
+        if (this.isKeyJustPressed(Game.Key.HARD_DROP)) {
             this.doHardDrop();
             this.land();
         }
 
-        if (this.isKeyPressed("ArrowLeft") && !this.wasKeyPressed("ArrowLeft")) {
+        if (this.isKeyJustPressed(Game.Key.MOVE_LEFT)) {
             if (this.canMoveTetrimino(-1, 0)) {
                 this.tetrimino.move(-1, 0);
                 this.tickers.initialMove.reset();
@@ -492,7 +500,7 @@ class Game {
             }
         }
 
-        if (this.isKeyPressed("ArrowRight") && !this.wasKeyPressed("ArrowRight")) {
+        if (this.isKeyJustPressed(Game.Key.MOVE_RIGHT)) {
             if (this.canMoveTetrimino(1, 0)) {
                 this.tetrimino.move(1, 0);
                 this.tickers.initialMove.reset();
@@ -502,7 +510,7 @@ class Game {
         }
 
         // Rotate Clockwise
-        if (this.isKeyPressed("ArrowUp") && !this.wasKeyPressed("ArrowUp")) {
+        if (this.isKeyJustPressed(Game.Key.ROTATE_CLOCKWISE)) {
             if (this.canRotateTetrimino(Tetrimino.Direction.CLOCKWISE)) {
                 this.tetrimino.rotate(Tetrimino.Direction.CLOCKWISE);
                 this.tickers.land.reset();
@@ -552,8 +560,7 @@ class Game {
         }
 
         // Counter Clockwise
-        if ((this.isKeyPressed("z") && !this.wasKeyPressed("z")) ||
-            (this.isKeyPressed("Z") && !this.wasKeyPressed("Z"))) {
+        if (this.isKeyJustPressed(Game.Key.ROTATE_COUNTER_CLOCKWISE)) {
             if (this.canRotateTetrimino(Tetrimino.Direction.COUNTER_CLOCKWISE)) {
                 this.tetrimino.rotate(Tetrimino.Direction.COUNTER_CLOCKWISE);
                 this.tickers.land.reset();
@@ -602,7 +609,7 @@ class Game {
             }
         }
 
-        if (this.isKeyPressed("ArrowDown") && this.tickers.goDown.isDone()) {
+        if (this.isKeyPressed(Game.Key.SOFT_DROP) && this.tickers.goDown.isDone()) {
             this.attemptToSoftDrop();
         }
 
@@ -614,6 +621,10 @@ class Game {
 
         for (let i = 0; i < this.keysPressed.length; i++)
             this.previousKeysPressed[i] = this.keysPressed[i];
+    }
+
+    isKeyJustPressed(key) {
+        return this.isKeyPressed(key) && !this.wasKeyPressed(key);
     }
 
     isKeyPressed(key) {

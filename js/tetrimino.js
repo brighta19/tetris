@@ -132,10 +132,8 @@ class Tetrimino {
         this.y = y;
         this.type = type;
         this.orientation = orientation;
-    }
 
-    get color() {
-        return Tetrimino.Properties[this.type].color;
+        this.color = Tetrimino.Properties[this.type].color;
     }
 
     get blocks() {
