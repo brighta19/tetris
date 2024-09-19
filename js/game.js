@@ -113,23 +113,23 @@ class Game {
 
 
         if (this.isKeyPressed("ArrowLeft") && this.tickers.initialMove.isDone() && this.tickers.move.isDone()) {
-            if (this.isLocationValid(this.getTransformedBlocks(-1, 0, 0))) {
+            if (this.canMoveTetrimino(-1, 0)) {
                 this.moveTetriminoLeft();
             }
         }
 
         if (this.isKeyPressed("ArrowRight") && this.tickers.initialMove.isDone() && this.tickers.move.isDone()) {
-            if (this.isLocationValid(this.getTransformedBlocks(1, 0, 0))) {
+            if (this.canMoveTetrimino(1, 0)) {
                 this.moveTetriminoRight();
             }
         }
 
         if (this.isKeyPressed("ArrowDown") && this.tickers.goDown.isDone()) {
-            this.attemptSoftDrop();
+            this.attemptToSoftDrop();
         }
 
 
-        if (this.isLocationValid(this.getTransformedBlocks(0, 1, 0))) {
+        if (this.canMoveTetrimino(0, 1)) {
             if (this.instantDrop) {
                 let ghostTetriminoLocation = this.getGhostTetriminoLocation();
                 this.tetrimino.move(0, ghostTetriminoLocation.y);
@@ -163,8 +163,8 @@ class Game {
         this.hasSwitchedTetrimino = true;
     }
 
-    attemptSoftDrop() {
-        if (this.isLocationValid(this.getTransformedBlocks(0, 1, 0))) {
+    attemptToSoftDrop() {
+        if (this.canMoveTetrimino(0, 1)) {
             this.tetrimino.move(0, 1);
             this.tickers.goDown.reset();
             this.tickers.autoGoDown.reset();
@@ -381,22 +381,14 @@ class Game {
     }
 
     spawnTetrimino(type) {
-        type = type || this.queue.getNextTetriminoType();
-        let y = this.instantDrop ? Grid.NUM_OF_ROWS - 1 : Grid.NUM_OF_HIDDEN_ROWS;
+        type ??= this.queue.getNextTetriminoType();
 
+        let y = this.instantDrop ? Grid.NUM_OF_ROWS - 1 : Grid.NUM_OF_HIDDEN_ROWS;
         this.tetrimino = new Tetrimino(3, y, type);
 
-        while (
-            this.tetrimino.y > 0 &&
-            !this.isLocationValid(this.getTransformedBlocks(0, 0, 0))
-        ) {
-            this.tetrimino.y--;
-        }
+        this.attemptToPlaceTetrimino();
 
-        if (
-            !this.isLocationValid(this.getTransformedBlocks(0, 0, 0)) ||
-            this.isTetriminoHidden()
-        ) {
+        if (this.isTetriminoBlockedOut() || this.isTetriminoHidden()) {
             this.stop(Game.GameOverReason.BLOCK_OUT);
             return;
         }
@@ -404,6 +396,11 @@ class Game {
         this.tickers.autoGoDown.reset();
         this.tickers.land.reset();
         this.tickers.forceLand.reset();
+    }
+
+    attemptToPlaceTetrimino() {
+        while (this.isTetriminoBlockedOut() && this.tetrimino.y > 0)
+            this.tetrimino.move(0, -1);
     }
 
     lockTetrimino() {
@@ -425,14 +422,30 @@ class Game {
             y: 0,
         };
 
-        while (this.isLocationValid(this.getTransformedBlocks(0, location.y + 1, 0))) {
+        while (this.canMoveTetrimino(0, location.y + 1)) {
             location.y++;
         }
 
         return location;
     }
 
-    getTransformedBlocks(moveX = 0, moveY = 0, rotateDirection = Tetrimino.Direction.NONE) {
+    isTetriminoBlockedOut() {
+        return !this.isLocationValid(this.getTransformedBlocks(0, 0, 0));
+    }
+
+    canMoveTetrimino(x, y) {
+        return this.isLocationValid(this.getTransformedBlocks(x, y, Tetrimino.Direction.NONE));
+    }
+
+    canRotateTetrimino(direction) {
+        return this.isLocationValid(this.getTransformedBlocks(0, 0, direction));
+    }
+
+    canMoveAndRotateTetrimino(x, y, direction) {
+        return this.isLocationValid(this.getTransformedBlocks(x, y, direction));
+    }
+
+    getTransformedBlocks(moveX, moveY, rotateDirection) {
         let tempTetrimino = Tetrimino.clone(this.tetrimino);
         tempTetrimino.move(moveX, moveY);
         tempTetrimino.rotate(rotateDirection);
@@ -469,6 +482,7 @@ class Game {
         for (let i = 0; i < blocks.length; i++) {
             let block = blocks[i];
             let y = block[1] + this.tetrimino.y;
+
             if (y >= Grid.NUM_OF_HIDDEN_ROWS)
                 return false;
         }
@@ -495,7 +509,7 @@ class Game {
         }
 
         if (this.isKeyPressed("ArrowLeft") && !this.wasKeyPressed("ArrowLeft")) {
-            if (this.isLocationValid(this.getTransformedBlocks(-1, 0, 0))) {
+            if (this.canMoveTetrimino(-1, 0)) {
                 this.tetrimino.move(-1, 0);
                 this.tickers.initialMove.reset();
                 this.tickers.land.reset();
@@ -504,7 +518,7 @@ class Game {
         }
 
         if (this.isKeyPressed("ArrowRight") && !this.wasKeyPressed("ArrowRight")) {
-            if (this.isLocationValid(this.getTransformedBlocks(1, 0, 0))) {
+            if (this.canMoveTetrimino(1, 0)) {
                 this.tetrimino.move(1, 0);
                 this.tickers.initialMove.reset();
                 this.tickers.land.reset();
@@ -514,7 +528,7 @@ class Game {
 
         // Rotate Clockwise
         if (this.isKeyPressed("ArrowUp") && !this.wasKeyPressed("ArrowUp")) {
-            if (this.isLocationValid(this.getTransformedBlocks(0, 0, Tetrimino.Direction.CLOCKWISE))) {
+            if (this.canRotateTetrimino(Tetrimino.Direction.CLOCKWISE)) {
                 this.tetrimino.rotate(Tetrimino.Direction.CLOCKWISE);
                 this.tickers.land.reset();
                 this.recentTetriminoAction = Game.TetriminoAction.ROTATION;
@@ -549,7 +563,7 @@ class Game {
                 for (let i = 0; i < kickTests.length; i++) {
                     let test = kickTests[i];
 
-                    if (this.isLocationValid(this.getTransformedBlocks(test[0], test[1], Tetrimino.Direction.CLOCKWISE))) {
+                    if (this.canMoveAndRotateTetrimino(test[0], test[1], Tetrimino.Direction.CLOCKWISE)) {
                         this.tetrimino.move(test[0], test[1]);
                         this.tetrimino.rotate(Tetrimino.Direction.CLOCKWISE);
                         this.tickers.land.reset();
@@ -565,7 +579,7 @@ class Game {
         // Counter Clockwise
         if ((this.isKeyPressed("z") && !this.wasKeyPressed("z")) ||
             (this.isKeyPressed("Z") && !this.wasKeyPressed("Z"))) {
-            if (this.isLocationValid(this.getTransformedBlocks(0, 0, Tetrimino.Direction.COUNTER_CLOCKWISE))) {
+            if (this.canRotateTetrimino(Tetrimino.Direction.COUNTER_CLOCKWISE)) {
                 this.tetrimino.rotate(Tetrimino.Direction.COUNTER_CLOCKWISE);
                 this.tickers.land.reset();
                 this.recentTetriminoAction = Game.TetriminoAction.ROTATION;
@@ -600,7 +614,7 @@ class Game {
                 for (let i = 0; i < kickTests.length; i++) {
                     let test = kickTests[i];
 
-                    if (this.isLocationValid(this.getTransformedBlocks(test[0], test[1], Tetrimino.Direction.COUNTER_CLOCKWISE))) {
+                    if (this.canMoveAndRotateTetrimino(test[0], test[1], Tetrimino.Direction.COUNTER_CLOCKWISE)) {
                         this.tetrimino.move(test[0], test[1]);
                         this.tetrimino.rotate(Tetrimino.Direction.COUNTER_CLOCKWISE);
                         this.tickers.land.reset();
@@ -614,7 +628,7 @@ class Game {
         }
 
         if (this.isKeyPressed("ArrowDown") && this.tickers.goDown.isDone()) {
-            this.attemptSoftDrop();
+            this.attemptToSoftDrop();
         }
 
         this.updatePreviousKeys();

@@ -148,11 +148,11 @@ class Renderer {
         this.context.restore();
     }
 
-    drawBlocks(tetriminoType, rotation, x, y, scale) {
+    drawBlocks(tetriminoType, rotation, x, y, scale = 1) {
         let properties = Tetrimino.Properties[tetriminoType];
         let blocks = properties.blocks[rotation];
         let color = properties.color;
-        let size = Renderer.BLOCK_SIZE * (scale || 1);
+        let size = Renderer.BLOCK_SIZE * scale;
 
         this.context.save();
 
