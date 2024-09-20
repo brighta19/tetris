@@ -4,7 +4,7 @@ class Queue {
     }
 
     generateNextSet() {
-        let types = Tetrimino.getAllTypes();
+        let types = Tetromino.getAllTypes();
 
         while (types.length > 0) {
             let randomIndex = Math.floor(Math.random() * types.length);
@@ -21,7 +21,7 @@ class Queue {
         return [this.queue[0], this.queue[1], this.queue[2]];
     }
 
-    getNextTetriminoType() {
+    getNextTetrominoType() {
         if (this.queue.length == 0)
             this.generateNextSet();
 

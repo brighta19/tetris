@@ -21,7 +21,7 @@ class Grid {
         }
     }
 
-    attemptToClearRow() {
+    attemptToClearRows() {
         let y = this.grid.length - 1;
         this.numOfRowsCleared = 0;
 

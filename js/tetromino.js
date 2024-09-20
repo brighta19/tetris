@@ -1,4 +1,4 @@
-class Tetrimino {
+class Tetromino {
     static Types = {
         I: "I",
         O: "O",
@@ -20,7 +20,7 @@ class Tetrimino {
         COUNTER_CLOCKWISE: -1,
     };
     static Properties = {
-        [Tetrimino.Types.Z]: {
+        [Tetromino.Types.Z]: {
             color: "red",
             blocks: [
                 [[0, 0], [1, 0], [1, 1], [2, 1]],
@@ -29,7 +29,7 @@ class Tetrimino {
                 [[1, 0], [1, 1], [0, 1], [0, 2]],
             ],
         },
-        [Tetrimino.Types.S]: {
+        [Tetromino.Types.S]: {
             color: "lime",
             blocks: [
                 [[0, 1], [1, 1], [1, 0], [2, 0]],
@@ -38,7 +38,7 @@ class Tetrimino {
                 [[0, 0], [0, 1], [1, 1], [1, 2]],
             ],
         },
-        [Tetrimino.Types.T]: {
+        [Tetromino.Types.T]: {
             color: "purple",
             blocks: [
                 [[0, 1], [1, 0], [2, 1], [1, 1]],
@@ -47,7 +47,7 @@ class Tetrimino {
                 [[1, 2], [0, 1], [1, 0], [1, 1]],
             ],
         },
-        [Tetrimino.Types.L]: {
+        [Tetromino.Types.L]: {
             color: "orange",
             blocks: [
                 [[0, 1], [1, 1], [2, 1], [2, 0]],
@@ -56,7 +56,7 @@ class Tetrimino {
                 [[0, 0], [1, 0], [1, 1], [1, 2]],
             ],
         },
-        [Tetrimino.Types.J]: {
+        [Tetromino.Types.J]: {
             color: "darkblue",
             blocks: [
                 [[0, 0], [0, 1], [1, 1], [2, 1]],
@@ -65,7 +65,7 @@ class Tetrimino {
                 [[1, 0], [1, 1], [1, 2], [0, 2]],
             ],
         },
-        [Tetrimino.Types.O]: {
+        [Tetromino.Types.O]: {
             color: "gold",
             blocks: [
                 [[1, 0], [2, 0], [1, 1], [2, 1]],
@@ -74,7 +74,7 @@ class Tetrimino {
                 [[1, 0], [2, 0], [1, 1], [2, 1]],
             ],
         },
-        [Tetrimino.Types.I]: {
+        [Tetromino.Types.I]: {
             color: "dodgerblue",
             blocks: [
                 [[0, 1], [1, 1], [2, 1], [3, 1]],
@@ -86,39 +86,39 @@ class Tetrimino {
     };
     static WallKicks = {
         I: {
-            [Tetrimino.Orientation.DEFAULT]: {
-                [Tetrimino.Direction.CLOCKWISE]: [ [-2, 0], [1, 0], [-2, 1], [1, -2] ],
-                [Tetrimino.Direction.COUNTER_CLOCKWISE]: [ [-1, 0], [2, 0], [-1, -2], [2, 1] ]
+            [Tetromino.Orientation.DEFAULT]: {
+                [Tetromino.Direction.CLOCKWISE]: [ [-2, 0], [1, 0], [-2, 1], [1, -2] ],
+                [Tetromino.Direction.COUNTER_CLOCKWISE]: [ [-1, 0], [2, 0], [-1, -2], [2, 1] ]
             },
-            [Tetrimino.Orientation.RIGHT]: {
-                [Tetrimino.Direction.CLOCKWISE]: [ [-1, 0], [2, 0], [-1, -2], [2, 1] ],
-                [Tetrimino.Direction.COUNTER_CLOCKWISE]: [ [2, 0], [-1, 0], [2, -1], [-1, 2] ]
+            [Tetromino.Orientation.RIGHT]: {
+                [Tetromino.Direction.CLOCKWISE]: [ [-1, 0], [2, 0], [-1, -2], [2, 1] ],
+                [Tetromino.Direction.COUNTER_CLOCKWISE]: [ [2, 0], [-1, 0], [2, -1], [-1, 2] ]
             },
-            [Tetrimino.Orientation.DOWN]: {
-                [Tetrimino.Direction.CLOCKWISE]: [ [2, 0], [-1, 0], [2, -1], [-1, 2] ],
-                [Tetrimino.Direction.COUNTER_CLOCKWISE]: [ [1, 0], [-2, 0], [1, 2], [-2, -1] ]
+            [Tetromino.Orientation.DOWN]: {
+                [Tetromino.Direction.CLOCKWISE]: [ [2, 0], [-1, 0], [2, -1], [-1, 2] ],
+                [Tetromino.Direction.COUNTER_CLOCKWISE]: [ [1, 0], [-2, 0], [1, 2], [-2, -1] ]
             },
-            [Tetrimino.Orientation.LEFT]: {
-                [Tetrimino.Direction.CLOCKWISE]: [ [1, 0], [-2, 0], [1, 2], [-2, -1] ],
-                [Tetrimino.Direction.COUNTER_CLOCKWISE]: [ [-2, 0], [1, 0], [-2, 1], [1, -2] ]
+            [Tetromino.Orientation.LEFT]: {
+                [Tetromino.Direction.CLOCKWISE]: [ [1, 0], [-2, 0], [1, 2], [-2, -1] ],
+                [Tetromino.Direction.COUNTER_CLOCKWISE]: [ [-2, 0], [1, 0], [-2, 1], [1, -2] ]
             },
         },
         Other: {
-            [Tetrimino.Orientation.DEFAULT]: {
-                [Tetrimino.Direction.CLOCKWISE]: [ [-1, 0], [-1, -1], [0, 2], [-1, 2] ],
-                [Tetrimino.Direction.COUNTER_CLOCKWISE]: [ [1, 0], [1, -1], [0, 2], [1, 2] ]
+            [Tetromino.Orientation.DEFAULT]: {
+                [Tetromino.Direction.CLOCKWISE]: [ [-1, 0], [-1, -1], [0, 2], [-1, 2] ],
+                [Tetromino.Direction.COUNTER_CLOCKWISE]: [ [1, 0], [1, -1], [0, 2], [1, 2] ]
             },
-            [Tetrimino.Orientation.RIGHT]: {
-                [Tetrimino.Direction.CLOCKWISE]: [ [1, 0], [1, 1], [0, -2], [1, -2] ],
-                [Tetrimino.Direction.COUNTER_CLOCKWISE]: [ [1, 0], [1, 1], [0, -2], [1, -2] ]
+            [Tetromino.Orientation.RIGHT]: {
+                [Tetromino.Direction.CLOCKWISE]: [ [1, 0], [1, 1], [0, -2], [1, -2] ],
+                [Tetromino.Direction.COUNTER_CLOCKWISE]: [ [1, 0], [1, 1], [0, -2], [1, -2] ]
             },
-            [Tetrimino.Orientation.DOWN]: {
-                [Tetrimino.Direction.CLOCKWISE]: [ [1, 0], [1, -1], [0, 2], [1, 2] ],
-                [Tetrimino.Direction.COUNTER_CLOCKWISE]: [ [-1, 0], [-1, -1], [0, 2], [-1, 2] ]
+            [Tetromino.Orientation.DOWN]: {
+                [Tetromino.Direction.CLOCKWISE]: [ [1, 0], [1, -1], [0, 2], [1, 2] ],
+                [Tetromino.Direction.COUNTER_CLOCKWISE]: [ [-1, 0], [-1, -1], [0, 2], [-1, 2] ]
             },
-            [Tetrimino.Orientation.LEFT]: {
-                [Tetrimino.Direction.CLOCKWISE]: [ [-1, 0], [-1, 1], [0, -2], [-1, -2] ],
-                [Tetrimino.Direction.COUNTER_CLOCKWISE]: [ [-1, 0], [-1, 1], [0, -2], [1, -2] ]
+            [Tetromino.Orientation.LEFT]: {
+                [Tetromino.Direction.CLOCKWISE]: [ [-1, 0], [-1, 1], [0, -2], [-1, -2] ],
+                [Tetromino.Direction.COUNTER_CLOCKWISE]: [ [-1, 0], [-1, 1], [0, -2], [1, -2] ]
             },
         },
     };
@@ -129,31 +129,31 @@ class Tetrimino {
 
     static getAllTypes() {
         return [
-            Tetrimino.Types.I,
-            Tetrimino.Types.O,
-            Tetrimino.Types.T,
-            Tetrimino.Types.L,
-            Tetrimino.Types.J,
-            Tetrimino.Types.S,
-            Tetrimino.Types.Z,
+            Tetromino.Types.I,
+            Tetromino.Types.O,
+            Tetromino.Types.T,
+            Tetromino.Types.L,
+            Tetromino.Types.J,
+            Tetromino.Types.S,
+            Tetromino.Types.Z,
         ];
     }
 
-    static clone(tetrimino) {
-        return new Tetrimino(tetrimino.x,tetrimino.y,tetrimino.type,tetrimino.orientation);
+    static clone(tetromino) {
+        return new Tetromino(tetromino.x,tetromino.y,tetromino.type,tetromino.orientation);
     }
 
-    constructor(x, y, type, orientation = Tetrimino.Orientation.DEFAULT) {
+    constructor(x, y, type, orientation = Tetromino.Orientation.DEFAULT) {
         this.x = x;
         this.y = y;
         this.type = type;
         this.orientation = orientation;
 
-        this.color = Tetrimino.Properties[this.type].color;
+        this.color = Tetromino.Properties[this.type].color;
     }
 
     get blocks() {
-        let blocks = Tetrimino.Properties[this.type].blocks[this.orientation];
+        let blocks = Tetromino.Properties[this.type].blocks[this.orientation];
 
         return blocks.map(block => [
             block[0] + this.x,
@@ -163,12 +163,12 @@ class Tetrimino {
 
     getWallKicks(intendedRotationDirection) {
         switch (this.type) {
-            case Tetrimino.Types.O:
+            case Tetromino.Types.O:
                 return [];
-            case Tetrimino.Types.I:
-                return Tetrimino.WallKicks.I[this.orientation][intendedRotationDirection];
+            case Tetromino.Types.I:
+                return Tetromino.WallKicks.I[this.orientation][intendedRotationDirection];
             default:
-                return Tetrimino.WallKicks.Other[this.orientation][intendedRotationDirection];
+                return Tetromino.WallKicks.Other[this.orientation][intendedRotationDirection];
         }
     }
 
@@ -180,9 +180,9 @@ class Tetrimino {
     rotate(direction) {
         this.orientation += direction;
 
-        if (this.orientation < Tetrimino.Orientation.DEFAULT)
-            this.orientation = Tetrimino.Orientation.LEFT;
-        if (this.orientation > Tetrimino.Orientation.LEFT)
-            this.orientation = Tetrimino.Orientation.DEFAULT;
+        if (this.orientation < Tetromino.Orientation.DEFAULT)
+            this.orientation = Tetromino.Orientation.LEFT;
+        if (this.orientation > Tetromino.Orientation.LEFT)
+            this.orientation = Tetromino.Orientation.DEFAULT;
     }
 }

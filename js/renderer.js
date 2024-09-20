@@ -127,8 +127,8 @@ class Renderer {
         this.context.fillStyle = "#000";
         this.context.fillText("HOLD", 44, 50);
 
-        if (this.game.heldTetriminoType)
-            this.drawBlocks(this.game.heldTetriminoType, 0, 35, 80, 0.6);
+        if (this.game.heldTetrominoType)
+            this.drawBlocks(this.game.heldTetrominoType, 0, 35, 80, 0.6);
 
         this.context.restore();
     }
@@ -148,8 +148,8 @@ class Renderer {
         this.context.restore();
     }
 
-    drawBlocks(tetriminoType, rotation, x, y, scale = 1) {
-        let properties = Tetrimino.Properties[tetriminoType];
+    drawBlocks(tetrominoType, rotation, x, y, scale = 1) {
+        let properties = Tetromino.Properties[tetrominoType];
         let blocks = properties.blocks[rotation];
         let color = properties.color;
         let size = Renderer.BLOCK_SIZE * scale;
@@ -167,9 +167,9 @@ class Renderer {
         this.context.restore();
     }
 
-    drawTetrimino(offset) {
-        let blocks = this.game.tetrimino.blocks;
-        let color = this.game.tetrimino.color;
+    drawTetromino(offset) {
+        let blocks = this.game.tetromino.blocks;
+        let color = this.game.tetromino.color;
 
         this.context.save();
         this.context.beginPath();
@@ -192,9 +192,9 @@ class Renderer {
         this.context.restore();
     }
 
-    drawGhostTetrimino(offset) {
-        let ghostTetrimino = this.game.getGhostTetrimino();
-        let blocks = ghostTetrimino.blocks;
+    drawGhostTetromino(offset) {
+        let ghostTetromino = this.game.getGhostTetromino();
+        let blocks = ghostTetromino.blocks;
 
         this.context.save();
         this.context.beginPath();
@@ -215,7 +215,7 @@ class Renderer {
 
     drawPlayingField(offset) {
         this.drawGrid(offset);
-        this.drawGhostTetrimino(offset);
-        this.drawTetrimino(offset);
+        this.drawGhostTetromino(offset);
+        this.drawTetromino(offset);
     }
 }
