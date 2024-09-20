@@ -46,7 +46,7 @@ class Game {
 
         this.renderer = new Renderer(this);
 
-        this.grid = new Grid();
+        this.playingField = new PlayingField();
 
         this.tetromino = null;
         this.heldTetrominoType = null;
@@ -204,10 +204,10 @@ class Game {
         if (this.gameOver)
             return;
 
-        this.grid.attemptToClearRows();
-        this.totalLinesCleared += this.grid.numOfRowsCleared;
+        let linesCleared = this.playingField.clearLines();
+        this.totalLinesCleared += linesCleared;
 
-        this.scorePoints();
+        this.scorePoints(linesCleared);
 
         this.attemptToAdvanceLevel();
 
@@ -227,23 +227,23 @@ class Game {
         }
     }
 
-    scorePoints() {
+    scorePoints(linesCleared) {
         if (this.recentTetrominoTspin == Tetromino.TSpins.MINI) {
             // T-Spin Mini
-            if (this.grid.numOfRowsCleared == 0) {
+            if (linesCleared == 0) {
                 this.comboLength = -1;
                 this.score += Game.Points.MINI_TSPIN;
                 console.log("T-Spin Mini");
             }
             // T-Spin Mini Single
-            else if (this.grid.numOfRowsCleared == 1) {
+            else if (linesCleared == 1) {
                 this.comboLength++;
                 this.score += Game.Points.MINI_TSPIN_SINGLE * this.getScoreMultiplier() + this.getScoreBonus();
                 console.log((this.backToBack ? "Back to back " : "") + "T-Spin Mini Single" + (this.comboLength > 0 ? " + COMBO x " + this.comboLength : ""));
                 this.backToBack = true;
             }
             // T-Spin Mini Double
-            else if (this.grid.numOfRowsCleared == 2) {
+            else if (linesCleared == 2) {
                 this.comboLength++;
                 this.score += Game.Points.MINI_TSPIN_DOUBLE * this.getScoreMultiplier() + this.getScoreBonus();
                 console.log((this.backToBack ? "Back to back " : "") + "T-Spin Mini Double" + (this.comboLength > 0 ? " + COMBO x " + this.comboLength : ""));
@@ -252,27 +252,27 @@ class Game {
         }
         else if (this.recentTetrominoTspin == Tetromino.TSpins.REGULAR) {
             // T-Spin
-            if (this.grid.numOfRowsCleared == 0) {
+            if (linesCleared == 0) {
                 this.comboLength = -1;
                 this.score += Game.Points.TSPIN;
                 console.log("T-Spin");
             }
             // T-Spin Single
-            else if (this.grid.numOfRowsCleared == 1) {
+            else if (linesCleared == 1) {
                 this.comboLength++;
                 this.score += Game.Points.TSPIN_SINGLE * this.getScoreMultiplier() + this.getScoreBonus();
                 console.log((this.backToBack ? "Back to back " : "") + "T-Spin Single" + (this.comboLength > 0 ? " + COMBO x " + this.comboLength : ""));
                 this.backToBack = true;
             }
             // T-Spin Double
-            else if (this.grid.numOfRowsCleared == 2) {
+            else if (linesCleared == 2) {
                 this.comboLength++;
                 this.score += Game.Points.TSPIN_DOUBLE * this.getScoreMultiplier() + this.getScoreBonus();
                 console.log((this.backToBack ? "Back to back " : "") + "T-Spin Double" + (this.comboLength > 0 ? " + COMBO x " + this.comboLength : ""));
                 this.backToBack = true;
             }
             // T-Spin Triple
-            else if (this.grid.numOfRowsCleared == 3) {
+            else if (linesCleared == 3) {
                 this.comboLength++;
                 this.score += Game.Points.TSPIN_TRIPLE * this.getScoreMultiplier() + this.getScoreBonus();
                 console.log((this.backToBack ? "Back to back " : "") + "T-Spin Triple" + (this.comboLength > 0 ? " + COMBO x " + this.comboLength : ""));
@@ -280,32 +280,32 @@ class Game {
             }
         }
         else {
-            if (this.grid.numOfRowsCleared == 0) {
+            if (linesCleared == 0) {
                 this.comboLength = -1;
             }
             // Single Line Clear
-            else if (this.grid.numOfRowsCleared == 1) {
+            else if (linesCleared == 1) {
                 this.comboLength++;
                 this.score += Game.Points.SINGLE + this.getScoreBonus();
                 this.backToBack = false;
                 console.log("Single" + (this.comboLength > 0 ? " + COMBO x " + this.comboLength : ""));
             }
             // Double Line Clear
-            else if (this.grid.numOfRowsCleared == 2) {
+            else if (linesCleared == 2) {
                 this.comboLength++;
                 this.score += Game.Points.DOUBLE + this.getScoreBonus();
                 this.backToBack = false;
                 console.log("Double" + (this.comboLength > 0 ? " + COMBO x " + this.comboLength : ""));
             }
             // Triple Line Clear
-            else if (this.grid.numOfRowsCleared == 3) {
+            else if (linesCleared == 3) {
                 this.comboLength++;
                 this.score += Game.Points.TRIPLE + this.getScoreBonus();
                 this.backToBack = false;
                 console.log("Triple" + (this.comboLength > 0 ? " + COMBO x " + this.comboLength : ""));
             }
             // Tetris
-            else if (this.grid.numOfRowsCleared == 4) {
+            else if (linesCleared == 4) {
                 this.comboLength++;
                 this.score += Game.Points.TETRIS * this.getScoreMultiplier() + this.getScoreBonus();
                 console.log((this.backToBack ? "Back to back " : "") + "Tetris" + (this.comboLength > 0 ? " + COMBO x " + this.comboLength : ""));
@@ -336,45 +336,45 @@ class Game {
         switch (this.tetromino.orientation) {
             case Tetromino.Orientation.DEFAULT:
                 topCorners = [
-                    !this.grid.isCellWithinBoundsAndEmpty(this.tetromino.x, this.tetromino.y),
-                    !this.grid.isCellWithinBoundsAndEmpty(this.tetromino.x + 2, this.tetromino.y),
+                    !this.playingField.isCellWithinBoundsAndEmpty(this.tetromino.x, this.tetromino.y),
+                    !this.playingField.isCellWithinBoundsAndEmpty(this.tetromino.x + 2, this.tetromino.y),
                 ];
                 bottomCorners = [
-                    !this.grid.isCellWithinBoundsAndEmpty(this.tetromino.x, this.tetromino.y + 2),
-                    !this.grid.isCellWithinBoundsAndEmpty(this.tetromino.x + 2, this.tetromino.y + 2),
+                    !this.playingField.isCellWithinBoundsAndEmpty(this.tetromino.x, this.tetromino.y + 2),
+                    !this.playingField.isCellWithinBoundsAndEmpty(this.tetromino.x + 2, this.tetromino.y + 2),
                 ];
                 break;
 
             case Tetromino.Orientation.RIGHT:
                 topCorners = [
-                    !this.grid.isCellWithinBoundsAndEmpty(this.tetromino.x + 2, this.tetromino.y),
-                    !this.grid.isCellWithinBoundsAndEmpty(this.tetromino.x + 2, this.tetromino.y + 2)
+                    !this.playingField.isCellWithinBoundsAndEmpty(this.tetromino.x + 2, this.tetromino.y),
+                    !this.playingField.isCellWithinBoundsAndEmpty(this.tetromino.x + 2, this.tetromino.y + 2)
                 ];
                 bottomCorners = [
-                    !this.grid.isCellWithinBoundsAndEmpty(this.tetromino.x, this.tetromino.y),
-                    !this.grid.isCellWithinBoundsAndEmpty(this.tetromino.x, this.tetromino.y + 2)
+                    !this.playingField.isCellWithinBoundsAndEmpty(this.tetromino.x, this.tetromino.y),
+                    !this.playingField.isCellWithinBoundsAndEmpty(this.tetromino.x, this.tetromino.y + 2)
                 ];
                 break;
 
             case Tetromino.Orientation.DOWN:
                 topCorners = [
-                    !this.grid.isCellWithinBoundsAndEmpty(this.tetromino.x, this.tetromino.y + 2),
-                    !this.grid.isCellWithinBoundsAndEmpty(this.tetromino.x + 2, this.tetromino.y + 2)
+                    !this.playingField.isCellWithinBoundsAndEmpty(this.tetromino.x, this.tetromino.y + 2),
+                    !this.playingField.isCellWithinBoundsAndEmpty(this.tetromino.x + 2, this.tetromino.y + 2)
                 ];
                 bottomCorners = [
-                    !this.grid.isCellWithinBoundsAndEmpty(this.tetromino.x, this.tetromino.y),
-                    !this.grid.isCellWithinBoundsAndEmpty(this.tetromino.x + 2, this.tetromino.y)
+                    !this.playingField.isCellWithinBoundsAndEmpty(this.tetromino.x, this.tetromino.y),
+                    !this.playingField.isCellWithinBoundsAndEmpty(this.tetromino.x + 2, this.tetromino.y)
                 ];
                 break;
 
             case Tetromino.Orientation.LEFT:
                 topCorners = [
-                    !this.grid.isCellWithinBoundsAndEmpty(this.tetromino.x, this.tetromino.y),
-                    !this.grid.isCellWithinBoundsAndEmpty(this.tetromino.x, this.tetromino.y + 2)
+                    !this.playingField.isCellWithinBoundsAndEmpty(this.tetromino.x, this.tetromino.y),
+                    !this.playingField.isCellWithinBoundsAndEmpty(this.tetromino.x, this.tetromino.y + 2)
                 ];
                 bottomCorners = [
-                    !this.grid.isCellWithinBoundsAndEmpty(this.tetromino.x + 2, this.tetromino.y),
-                    !this.grid.isCellWithinBoundsAndEmpty(this.tetromino.x + 2, this.tetromino.y + 2)
+                    !this.playingField.isCellWithinBoundsAndEmpty(this.tetromino.x + 2, this.tetromino.y),
+                    !this.playingField.isCellWithinBoundsAndEmpty(this.tetromino.x + 2, this.tetromino.y + 2)
                 ];
                 break;
         }
@@ -391,12 +391,14 @@ class Game {
         else if (twoBottomCorners && atLeastOneTopCorner) {
             return Tetromino.TSpins.MINI;
         }
+
+        return null;
     }
 
     spawnTetromino(type) {
         type ??= this.queue.getNextTetrominoType();
 
-        let y = this.instantDrop ? Grid.NUM_OF_ROWS - 1 : Grid.NUM_OF_HIDDEN_ROWS;
+        let y = this.instantDrop ? this.playingField.lastLine : this.playingField.firstLine;
         this.tetromino = new Tetromino(3, y, type);
 
         this.attemptToPlaceTetromino();
@@ -423,7 +425,7 @@ class Game {
         for (let i = 0; i < blocks.length; i++) {
             let [x, y] = blocks[i];
 
-            this.grid.setBlock(x, y, color);
+            this.playingField.setCell(x, y, color);
         }
     }
 
@@ -476,7 +478,7 @@ class Game {
 
     isLocationValid(tetromino) {
         let blocks = tetromino.blocks;
-        return blocks.every(([x, y]) => this.grid.isCellWithinBoundsAndEmpty(x, y));
+        return blocks.every(([x, y]) => this.playingField.isCellWithinBoundsAndEmpty(x, y));
     }
 
     checkForLockOut() {
@@ -486,7 +488,7 @@ class Game {
 
     isTetrominoHidden() {
         let blocks = this.tetromino.blocks;
-        return blocks.every(([_x, y]) => y < Grid.NUM_OF_HIDDEN_ROWS);
+        return blocks.every(([x, y]) => this.playingField.isCellInVanishZone(x, y));
     }
 
     onKeyPress() {

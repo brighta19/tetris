@@ -9,7 +9,7 @@ class Renderer {
 
 
     render() {
-        let width = Grid.NUM_OF_COLS * Renderer.BLOCK_SIZE;
+        let width = this.game.playingField.width * Renderer.BLOCK_SIZE;
 
         let offset = {
             x: (this.canvas.width / 2) - (width / 2),
@@ -39,12 +39,12 @@ class Renderer {
         this.context.save();
         this.context.strokeStyle = "#CCC";
 
-        for (let y = Grid.NUM_OF_HIDDEN_ROWS; y < Grid.NUM_OF_ROWS; y++) {
-            for (let x = 0; x < Grid.NUM_OF_COLS; x++) {
-                let blockColor = this.game.grid.getBlock(x, y);
+        for (let y = this.game.playingField.firstLine; y < this.game.playingField.fullHeight; y++) {
+            for (let x = 0; x < this.game.playingField.width; x++) {
+                let blockColor = this.game.playingField.getCell(x, y);
                 let blockX = offset.x + x * Renderer.BLOCK_SIZE;
                 let blockY = offset.y + y * Renderer.BLOCK_SIZE;
-                blockY -= Grid.NUM_OF_HIDDEN_ROWS * Renderer.BLOCK_SIZE;
+                blockY -= this.game.playingField.vanishZoneHeight * Renderer.BLOCK_SIZE;
 
                 this.context.beginPath();
                 this.context.rect(blockX, blockY, Renderer.BLOCK_SIZE,
@@ -178,7 +178,7 @@ class Renderer {
             let [x, y] = blocks[i];
             let rectX = offset.x + x * Renderer.BLOCK_SIZE;
             let rectY = offset.y + y * Renderer.BLOCK_SIZE;
-            rectY -= Grid.NUM_OF_HIDDEN_ROWS * Renderer.BLOCK_SIZE;
+            rectY -= this.game.playingField.vanishZoneHeight * Renderer.BLOCK_SIZE;
 
             this.context.rect(rectX, rectY, Renderer.BLOCK_SIZE, Renderer.BLOCK_SIZE);
         }
@@ -202,7 +202,7 @@ class Renderer {
             let [x, y] = blocks[i];
             let rectX = offset.x + x * Renderer.BLOCK_SIZE;
             let rectY = offset.y + y * Renderer.BLOCK_SIZE;
-            rectY -= Grid.NUM_OF_HIDDEN_ROWS * Renderer.BLOCK_SIZE;
+            rectY -= this.game.playingField.vanishZoneHeight * Renderer.BLOCK_SIZE;
 
             this.context.rect(rectX, rectY, Renderer.BLOCK_SIZE, Renderer.BLOCK_SIZE);
         }
