@@ -9,7 +9,7 @@ class Grid {
         this.numOfRowsCleared = 0;
 
         this.reset();
-        // Grid.Tests.setup1(this.grid);
+        // Grid.Setups.setup6(this.grid);
     }
 
     reset() {
@@ -68,9 +68,10 @@ class Grid {
     }
 }
 
-Grid.Tests = class {
-    // Setup T-Spin Triple (1/2kicks) test
+Grid.Setups = class {
     static setup1(grid) {
+        console.log("Setup T-Spin Triple (1/2 kicks) test");
+
         const b = "black";
         const reverse = Math.random() > 0.5;
         const r = Math.random() > 0.5 ? b : 0; // true = +2kicks, false = +1kick
@@ -83,8 +84,9 @@ Grid.Tests = class {
         grid[Grid.NUM_OF_ROWS - 1] =  [b, b, b, b, b, b, b, b, 0, b][reverse ? "reverse" : "slice"]();
     }
 
-    // Setup T-Spin Double / T-Spin Single / T-Spin Mini Single test
     static setup2(grid) {
+        console.log("Setup T-Spin Double / T-Spin Single / T-Spin Mini Single test");
+
         const b = "black";
         const r = Math.random() > 0.5 ? b : 0; // either
         const s = r == b ? 0 : b; // or
@@ -95,8 +97,9 @@ Grid.Tests = class {
         grid[Grid.NUM_OF_ROWS - 1] =  [b, b, b, b, b, b, b, b, 0, b][reverse ? "reverse" : "slice"]();
     }
 
-    // Setup T-Spin Single (1kick) test
     static setup3(grid) {
+        console.log("Setup T-Spin Single (0/1 kick) / T-Spin Mini Single (0/1 kick) / T-Spin Mini (0/1 kick) test");
+
         const b = "black";
         const r = Math.random() > 0.5 ? b : 0; // either
         const s = r == b ? 0 : b; // or
@@ -107,8 +110,9 @@ Grid.Tests = class {
         grid[Grid.NUM_OF_ROWS - 1] =  [b, b, b, b, b, b, b, b, 0, b][reverse ? "reverse" : "slice"]();
     }
 
-    // Setup T-Spin Mini Double (3kicks) / T-Spin Double (2kick) test
     static setup4(grid) {
+        console.log("Setup T-Spin Double (2 kicks) / T-Spin Mini Single (3 kicks) / T-Spin Mini Double (4 kicks) test");
+
         const b = "black";
         const reverse = Math.random() > 0.5;
 
@@ -120,8 +124,9 @@ Grid.Tests = class {
         grid[Grid.NUM_OF_ROWS - 1] =  [b, b, b, b, b, b, 0, 0, 0, b][reverse ? "reverse" : "slice"]();
     }
 
-    // Setup T-Spin Mini Single (1kick) test
     static setup5(grid) {
+        console.log("Setup T-Spin Mini Single (1kick) test");
+
         const b = "black";
         const reverse = Math.random() > 0.5;
 
@@ -129,8 +134,9 @@ Grid.Tests = class {
         grid[Grid.NUM_OF_ROWS - 1] =  [b, b, b, b, b, b, b, 0, 0, 0][reverse ? "reverse" : "slice"]();
     }
 
-    // Setup T-Spin Mini Double (1kick) test
     static setup6(grid) {
+        console.log("Setup T-Spin Mini Double (1kick) test");
+
         const b = "black";
         const r = Math.random() > 0.5 ? b : 0; // either
         const s = r == b ? 0 : b; // or
@@ -144,8 +150,10 @@ Grid.Tests = class {
         grid[Grid.NUM_OF_ROWS - 1] =  [b, b, b, b, b, b, b, b, s, r][reverse ? "reverse" : "slice"]();
     }
 
-    // Setup combo test
+
     static setupCombo(grid) {
+        console.log("Setup combo test")
+
         for (let y = Grid.NUM_OF_HIDDEN_ROWS + 3; y < Grid.NUM_OF_ROWS; y++) {
             for (let x = 0; x < Grid.NUM_OF_COLS - 2; x++) {
                 grid[y][x] = "black";
