@@ -7,123 +7,129 @@ class Scorer {
         DOUBLE: 300,
         TRIPLE: 500,
         TETRIS: 800,            // BACK TO BACK
-        MINI_TSPIN: 100,
-        MINI_TSPIN_SINGLE: 200, // BACK TO BACK
-        MINI_TSPIN_DOUBLE: 400, // BACK TO BACK
+        TSPIN_MINI: 100,
+        TSPIN_MINI_SINGLE: 200, // BACK TO BACK
+        TSPIN_MINI_DOUBLE: 400, // BACK TO BACK
         TSPIN: 400,
         TSPIN_SINGLE: 800,      // BACK TO BACK
         TSPIN_DOUBLE: 1200,     // BACK TO BACK
         TSPIN_TRIPLE: 1600,     // BACK TO BACK
 
+        // SINGLE_PERFECT_BONUS: 800,
+        // DOUBLE_PERFECT_BONUS: 1200,
+        // TRIPLE_PERFECT_BONUS: 1800,
+        // TETRIS_PERFECT_BONUS: 2000,
+        // BACK_TO_BACK_TETRIS_PERFECT_BONUS: 3200,
+
         BACK_TO_BACK_MULTIPLIER: 1.5,
         COMBO_BONUS: 50,
     };
 
-    constructor(game) {
-        this.game = game;
+    constructor() {
         this.score = 0;
-        this.comboLength = -1;
-        this.backToBack = false;
+        this.comboCounter = -1;
+        this.backToBackEnabled = false;
     }
 
-    calculateScore(linesCleared, tSpin) {
+    updateScore(level, linesCleared, tSpin) {
+        let points = 0;
+
         if (tSpin == Tetromino.TSpins.MINI) {
-            // T-Spin Mini
             if (linesCleared == 0) {
-                this.comboLength = -1;
-                this.score += Scorer.Points.MINI_TSPIN;
+                points += Scorer.Points.TSPIN_MINI;
                 console.log("T-Spin Mini");
             }
-            // T-Spin Mini Single
             else if (linesCleared == 1) {
-                this.comboLength++;
-                this.score += Scorer.Points.MINI_TSPIN_SINGLE * this.getScoreMultiplier() + this.calculateComboBonus();
-                console.log((this.backToBack ? "Back to back " : "") + "T-Spin Mini Single" + (this.comboLength > 0 ? " + COMBO x " + this.comboLength : ""));
-                this.backToBack = true;
+                points += Scorer.Points.TSPIN_MINI_SINGLE;
+                console.log((this.backToBackEnabled ? "Back to back " : "") + "T-Spin Mini Single" + (this.comboCounter > 0 ? " + COMBO x " + this.comboCounter : ""));
             }
-            // T-Spin Mini Double
             else if (linesCleared == 2) {
-                this.comboLength++;
-                this.score += Scorer.Points.MINI_TSPIN_DOUBLE * this.getScoreMultiplier() + this.calculateComboBonus();
-                console.log((this.backToBack ? "Back to back " : "") + "T-Spin Mini Double" + (this.comboLength > 0 ? " + COMBO x " + this.comboLength : ""));
-                this.backToBack = true;
+                points += Scorer.Points.TSPIN_MINI_DOUBLE;
+                console.log((this.backToBackEnabled ? "Back to back " : "") + "T-Spin Mini Double" + (this.comboCounter > 0 ? " + COMBO x " + this.comboCounter : ""));
             }
         }
         else if (tSpin == Tetromino.TSpins.REGULAR) {
-            // T-Spin
             if (linesCleared == 0) {
-                this.comboLength = -1;
-                this.score += Scorer.Points.TSPIN;
+                points += Scorer.Points.TSPIN;
                 console.log("T-Spin");
             }
-            // T-Spin Single
             else if (linesCleared == 1) {
-                this.comboLength++;
-                this.score += Scorer.Points.TSPIN_SINGLE * this.getScoreMultiplier() + this.calculateComboBonus();
-                console.log((this.backToBack ? "Back to back " : "") + "T-Spin Single" + (this.comboLength > 0 ? " + COMBO x " + this.comboLength : ""));
-                this.backToBack = true;
+                points += Scorer.Points.TSPIN_SINGLE;
+                console.log((this.backToBackEnabled ? "Back to back " : "") + "T-Spin Single" + (this.comboCounter > 0 ? " + COMBO x " + this.comboCounter : ""));
             }
-            // T-Spin Double
             else if (linesCleared == 2) {
-                this.comboLength++;
-                this.score += Scorer.Points.TSPIN_DOUBLE * this.getScoreMultiplier() + this.calculateComboBonus();
-                console.log((this.backToBack ? "Back to back " : "") + "T-Spin Double" + (this.comboLength > 0 ? " + COMBO x " + this.comboLength : ""));
-                this.backToBack = true;
+                points += Scorer.Points.TSPIN_DOUBLE;
+                console.log((this.backToBackEnabled ? "Back to back " : "") + "T-Spin Double" + (this.comboCounter > 0 ? " + COMBO x " + this.comboCounter : ""));
             }
-            // T-Spin Triple
             else if (linesCleared == 3) {
-                this.comboLength++;
-                this.score += Scorer.Points.TSPIN_TRIPLE * this.getScoreMultiplier() + this.calculateComboBonus();
-                console.log((this.backToBack ? "Back to back " : "") + "T-Spin Triple" + (this.comboLength > 0 ? " + COMBO x " + this.comboLength : ""));
-                this.backToBack = true;
+                points += Scorer.Points.TSPIN_TRIPLE;
+                console.log((this.backToBackEnabled ? "Back to back " : "") + "T-Spin Triple" + (this.comboCounter > 0 ? " + COMBO x " + this.comboCounter : ""));
             }
         }
         else {
-            if (linesCleared == 0) {
-                this.comboLength = -1;
+            if (linesCleared == 1) {
+                points += Scorer.Points.SINGLE;
+                console.log("Single" + (this.comboCounter > 0 ? " + COMBO x " + this.comboCounter : ""));
             }
-            // Single Line Clear
-            else if (linesCleared == 1) {
-                this.comboLength++;
-                this.score += Scorer.Points.SINGLE + this.calculateComboBonus();
-                this.backToBack = false;
-                console.log("Single" + (this.comboLength > 0 ? " + COMBO x " + this.comboLength : ""));
-            }
-            // Double Line Clear
             else if (linesCleared == 2) {
-                this.comboLength++;
-                this.score += Scorer.Points.DOUBLE + this.calculateComboBonus();
-                this.backToBack = false;
-                console.log("Double" + (this.comboLength > 0 ? " + COMBO x " + this.comboLength : ""));
+                points += Scorer.Points.DOUBLE;
+                console.log("Double" + (this.comboCounter > 0 ? " + COMBO x " + this.comboCounter : ""));
             }
-            // Triple Line Clear
             else if (linesCleared == 3) {
-                this.comboLength++;
-                this.score += Scorer.Points.TRIPLE + this.calculateComboBonus();
-                this.backToBack = false;
-                console.log("Triple" + (this.comboLength > 0 ? " + COMBO x " + this.comboLength : ""));
+                points += Scorer.Points.TRIPLE;
+                console.log("Triple" + (this.comboCounter > 0 ? " + COMBO x " + this.comboCounter : ""));
             }
-            // Tetris
             else if (linesCleared == 4) {
-                this.comboLength++;
-                this.score += Scorer.Points.TETRIS * this.getScoreMultiplier() + this.calculateComboBonus();
-                console.log((this.backToBack ? "Back to back " : "") + "Tetris" + (this.comboLength > 0 ? " + COMBO x " + this.comboLength : ""));
-                this.backToBack = true;
+                points += Scorer.Points.TETRIS;
+                console.log((this.backToBackEnabled ? "Back to back " : "") + "Tetris" + (this.comboCounter > 0 ? " + COMBO x " + this.comboCounter : ""));
             }
         }
+
+        this.updateComboCounter(linesCleared);
+
+        // if (points > 0) {
+        //     let p = points;
+        //     let b = this.canApplyBackToBackMultiplier(linesCleared, tSpin) ? Scorer.Points.BACK_TO_BACK_MULTIPLIER : 1;
+        //     let c = this.canApplyComboBonus() ? this.comboCounter * Scorer.Points.COMBO_BONUS : 0;
+        //     let l = level;
+        //     console.log(`${(p*b+c)*l} = (${p} * ${b} + (${Scorer.Points.COMBO_BONUS}*${this.comboCounter})) * ${l}`);
+        // }
+
+        if (this.canApplyBackToBackMultiplier(linesCleared, tSpin))
+            points *= Scorer.Points.BACK_TO_BACK_MULTIPLIER;
+
+        if (this.canApplyComboBonus())
+            points += this.comboCounter * Scorer.Points.COMBO_BONUS;
+
+        this.score += points * level;
+
+        this.updateBackToBackChain(linesCleared, tSpin);
     }
 
-    // use it
-    awardPoints(points) {
-        this.score += Scorer.Points.TRIPLE + this.calculateComboBonus();
+    updateComboCounter(linesCleared) {
+        if (linesCleared > 0)
+            this.comboCounter++;
+        else
+            this.comboCounter = -1;
     }
 
-    getScoreMultiplier() {
-        return this.backToBack ? Scorer.Points.BACK_TO_BACK_MULTIPLIER : 1;
+    canApplyComboBonus() {
+        return this.comboCounter > 0;
     }
 
-    calculateComboBonus() {
-        return this.comboLength > 0 ? this.comboLength * Scorer.Points.COMBO_BONUS : 0;
+    updateBackToBackChain(linesCleared, tSpin) {
+        if (this.isBackToBackLineClear(linesCleared, tSpin))
+            this.backToBackEnabled = true;
+        else if (linesCleared > 0)
+            this.backToBackEnabled = false;
+    }
+
+    canApplyBackToBackMultiplier(linesCleared, tSpin) {
+        return this.backToBackEnabled && this.isBackToBackLineClear(linesCleared, tSpin);
+    }
+
+    isBackToBackLineClear(linesCleared, tSpin) {
+        return (linesCleared == 4) || (tSpin != null && linesCleared > 0);
     }
 
     awardSoftDropPoints() {

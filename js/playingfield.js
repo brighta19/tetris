@@ -14,7 +14,7 @@ class PlayingField {
         this.lastLine = this.fullHeight - 1;
 
         this.resetGrid();
-        // Grid.Setups.setup6(this.grid);
+        // PlayingField.Setups.setup6(this.grid);
     }
 
     resetGrid() {

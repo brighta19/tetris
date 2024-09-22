@@ -26,7 +26,7 @@ class Game {
         this.updatesPerSecond = 30;
 
         this.renderer = new Renderer(this);
-        this.scorer = new Scorer(this);
+        this.scorer = new Scorer();
         this.playingField = new PlayingField();
 
         this.tetromino = null;
@@ -197,7 +197,7 @@ class Game {
         let linesCleared = this.playingField.clearLines();
 
         this.totalLinesCleared += linesCleared;
-        this.scorer.calculateScore(linesCleared, tSpin);
+        this.scorer.updateScore(this.level, linesCleared, tSpin);
     }
 
     attemptToAdvanceLevel() {
