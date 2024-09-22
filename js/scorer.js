@@ -15,11 +15,11 @@ class Scorer {
         TSPIN_DOUBLE: 1200,     // BACK TO BACK
         TSPIN_TRIPLE: 1600,     // BACK TO BACK
 
-        // SINGLE_PERFECT_BONUS: 800,
-        // DOUBLE_PERFECT_BONUS: 1200,
-        // TRIPLE_PERFECT_BONUS: 1800,
-        // TETRIS_PERFECT_BONUS: 2000,
-        // BACK_TO_BACK_TETRIS_PERFECT_BONUS: 3200,
+        SINGLE_PERFECT_BONUS: 800,
+        DOUBLE_PERFECT_BONUS: 1200,
+        TRIPLE_PERFECT_BONUS: 1800,
+        TETRIS_PERFECT_BONUS: 2000,
+        BACK_TO_BACK_TETRIS_PERFECT_BONUS: 3200,
 
         BACK_TO_BACK_MULTIPLIER: 1.5,
         COMBO_BONUS: 50,
@@ -31,8 +31,11 @@ class Scorer {
         this.backToBackEnabled = false;
     }
 
-    updateScore(level, linesCleared, tSpin) {
+    updateScore(level, isPlayingFieldEmpty, linesCleared, tSpin) {
         let points = 0;
+        let perfectClearBonus = 0;
+
+        let applyBackToBackMultiplier = this.canApplyBackToBackMultiplier(linesCleared, tSpin);
 
         if (tSpin == Tetromino.TSpins.MINI) {
             if (linesCleared == 0) {
@@ -85,23 +88,38 @@ class Scorer {
             }
         }
 
+        if (isPlayingFieldEmpty) {
+            if (linesCleared == 1)
+                perfectClearBonus = Scorer.Points.SINGLE_PERFECT_BONUS;
+            else if (linesCleared == 2)
+                perfectClearBonus = Scorer.Points.DOUBLE_PERFECT_BONUS;
+            else if (linesCleared == 3)
+                perfectClearBonus = Scorer.Points.TRIPLE_PERFECT_BONUS;
+            else if (linesCleared == 4) {
+                perfectClearBonus = applyBackToBackMultiplier
+                    ? Scorer.Points.BACK_TO_BACK_TETRIS_PERFECT_BONUS
+                    : Scorer.Points.TETRIS_PERFECT_BONUS;
+            }
+        }
+
         this.updateComboCounter(linesCleared);
 
         // if (points > 0) {
         //     let p = points;
-        //     let b = this.canApplyBackToBackMultiplier(linesCleared, tSpin) ? Scorer.Points.BACK_TO_BACK_MULTIPLIER : 1;
+        //     let b = applyBackToBackMultiplier ? Scorer.Points.BACK_TO_BACK_MULTIPLIER : 1;
         //     let c = this.canApplyComboBonus() ? this.comboCounter * Scorer.Points.COMBO_BONUS : 0;
+        //     let q = perfectClearBonus;
         //     let l = level;
-        //     console.log(`${(p*b+c)*l} = (${p} * ${b} + (${Scorer.Points.COMBO_BONUS}*${this.comboCounter})) * ${l}`);
+        //     console.log(`${(p*b+c+q)*l} = (${p} * ${b} + (${Scorer.Points.COMBO_BONUS}*${this.comboCounter})${q > 0 ? ` + ${q}`:''}) * ${l}`);
         // }
 
-        if (this.canApplyBackToBackMultiplier(linesCleared, tSpin))
+        if (applyBackToBackMultiplier)
             points *= Scorer.Points.BACK_TO_BACK_MULTIPLIER;
 
         if (this.canApplyComboBonus())
             points += this.comboCounter * Scorer.Points.COMBO_BONUS;
 
-        this.score += points * level;
+        this.score += (points + perfectClearBonus) * level;
 
         this.updateBackToBackChain(linesCleared, tSpin);
     }

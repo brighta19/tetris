@@ -197,7 +197,7 @@ class Game {
         let linesCleared = this.playingField.clearLines();
 
         this.totalLinesCleared += linesCleared;
-        this.scorer.updateScore(this.level, linesCleared, tSpin);
+        this.scorer.updateScore(this.level, this.playingField.isEmpty, linesCleared, tSpin);
     }
 
     attemptToAdvanceLevel() {

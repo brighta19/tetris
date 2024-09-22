@@ -12,6 +12,7 @@ class PlayingField {
         this.visibleHeight = this.fullHeight - this.vanishZoneHeight;
         this.firstLine = this.vanishZoneHeight;
         this.lastLine = this.fullHeight - 1;
+        this.isEmpty = true;
 
         this.resetGrid();
         // PlayingField.Setups.setup6(this.grid);
@@ -30,6 +31,8 @@ class PlayingField {
         let linesCleared = 0;
         let y = this.grid.length - 1;
 
+        this.isEmpty = true;
+
         while (y >= 0) {
             if (this.isLineComplete(y)) {
                 linesCleared++;
@@ -42,6 +45,9 @@ class PlayingField {
                 }
             }
             else {
+                if (this.isEmpty && !this.isLineEmpty(y))
+                    this.isEmpty = false;
+
                 y--;
             }
         }
@@ -68,6 +74,10 @@ class PlayingField {
 
     isLineComplete(y) {
         return this.grid[y].indexOf(PlayingField.EMPTY_BLOCK) < 0;
+    }
+
+    isLineEmpty(y) {
+        return this.grid[y].every(cell => cell == PlayingField.EMPTY_BLOCK);
     }
 
     setCell(x, y, color) {
